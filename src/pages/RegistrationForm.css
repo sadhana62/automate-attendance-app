@@ -1,0 +1,239 @@
+#root{
+    width: 100%;
+}
+
+
+.form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.form-section {
+  margin-bottom: 25px;
+  background: #fff;
+ background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #4CAF50;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h3::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: #4CAF50;
+  border-radius: 2px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  color: #555;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+.date-picker-input {
+  width: 90%;
+  padding: 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fff;
+  outline: none;
+}
+
+ .submit-btn { 
+  /* width: 100%; */
+  padding: 15px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 15px;
+  float: right;
+  margin-right: 12px;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+/* React Select Custom Styles Override */
+.css-13cymwt-control {
+  min-height: 45px !important;
+}
+
+.css-1pahdxg-control {
+  min-height: 45px !important;
+}
+
+/* DatePicker styles */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+  z-index: 99999999;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .registration-form {
+    padding: 10px;
+  }
+  
+  .form-content {
+    padding: 15px;
+  }
+  
+  .form-section {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  h2 {
+    font-size: 1.8rem;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+  }
+  
+  .form-header {
+    padding: 20px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  .date-picker-input {
+    padding: 10px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-form {
+    padding: 5px;
+  }
+  
+  .form-container {
+    border-radius: 10px;
+  }
+  
+  .form-section {
+    padding: 12px;
+  }
+  
+  .form-grid {
+    gap: 10px;
+  }
+  
+  .submit-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation for form sections */
+@keyframes fadeInUp {
+  /* from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  } */
+}
+
+.form-section {
+  /* animation: fadeInUp 0.4s ease forwards; */
+}
+
+.form-section:nth-child(1) { animation-delay: 0.1s; }
+.form-section:nth-child(2) { animation-delay: 0.2s; }
+.form-section:nth-child(3) { animation-delay: 0.3s; }
+.form-section:nth-child(4) { animation-delay: 0.4s; } 
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.css-26l3qy-menu {
+  z-index: 9999 !important;
+}
+
+/* Ensure the select container is above other elements */
+.css-b62m3t-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Adjust the DatePicker wrapper */
+.react-datepicker-wrapper {
+  position: relative;
+  z-index: 2;
+}

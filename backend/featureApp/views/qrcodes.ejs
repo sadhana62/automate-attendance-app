@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student QR Codes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .qr-card {
+      margin: 10px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .qr-image {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 10px;
+    }
+    .student-id {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <% students.forEach(student => { %>
+      <div class="qr-card">
+        <img class="qr-image" src="<%= student.qrCodeUrl %>" alt="QR Code for <%= student.name %>">
+        <div class="student-name"><%= student.name %></div>
+        <div class="student-id"><%= student.id %></div>
+      </div>
+    <% }); %>
+  </div>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Registration - Face Recognition</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .header {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .form-group {
+      margin: 25px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="text"] {
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      width: 250px;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    button.test-btn {
+      background-color: #6c757d;
+    }
+    button.test-btn:hover {
+      background-color: #5a6268;
+    }
+    #video {
+      border: 3px solid #007bff;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .video-container {
+      margin: 20px 0;
+    }
+    .message {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    .loading {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffeaa7;
+    }
+    .debug-info {
+      background-color: #e2e3e5;
+      color: #383d41;
+      border: 2px solid #d6d8db;
+      font-family: monospace;
+      font-size: 12px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← Back to Home</a>
+    
+    <div class="header">
+      <h1>👤 Student Registration</h1>
+      <p>Register a new student for face recognition attendance</p>
+    </div>
+    
+    <div class="form-group">
+      <label for="studentId">Student ID:</label>
+      <input type="text" id="studentId" placeholder="Enter Student ID (e.g., STU001)" required>
+    </div>
+    
+    <div class="video-container">
+      <video id="video" autoplay playsinline width="400" height="300"></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+    
+    <div class="form-group">
+      <button onclick="captureAndRegister()" id="registerBtn">📸 Capture & Register</button>
+      <button onclick="testUpload()" id="testBtn" class="test-btn">🧪 Test Upload</button>
+    </div>
+    
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const messageDiv = document.getElementById("message");
+    const registerBtn = document.getElementById("registerBtn");
+
+    // Start webcam with better configuration
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: 'user'
+      } 
+    }).then(stream => {
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        showMessage("📹 Camera ready! Enter Student ID and click 'Capture & Register'", "loading");
+        console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
+      };
+    }).catch(err => {
+      showMessage("❌ Error accessing camera: " + err.message, "error");
+      console.error('Camera error:', err);
+    });
+
+    function showMessage(text, type) {
+      messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+    }
+
+    function captureImage() {
+      return new Promise((resolve) => {
+        // Wait for video to be ready
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          showMessage("❌ Video not ready. Please wait for camera to initialize.", "error");
+          resolve(null);
+          return;
+        }
+
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Clear canvas and draw the video frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to blob with high quality
+        canvas.toBlob((blob) => {
+          if (blob && blob.size > 0) {
+            console.log(`Image captured: ${blob.size} bytes, type: ${blob.type}`);
+            resolve(blob);
+          } else {
+            console.error('Failed to capture image or empty blob');
+            showMessage("❌ Failed to capture image. Please try again.", "error");
+            resolve(null);
+          }
+        }, 'image/jpeg', 0.95); // Very high quality
+      });
+    }
+
+    async function testUpload() {
+      const studentId = document.getElementById("studentId").value.trim() || "TEST001";
+      
+      showMessage("🧪 Testing image capture and upload...", "loading");
+      
+      try {
+        const blob = await captureImage();
+        
+        if (!blob) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("sid", studentId);
+        formData.append("image", blob, `${studentId}_test.jpg`);
+
+        console.log('FormData contents:');
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+
+        const response = await fetch("/test-upload", {
+          method: "POST",
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage(`✅ Test successful! File size: ${data.fileSize} bytes`, "success");
+        } else {
+          showMessage(`❌ Test failed: ${data.message}`, "error");
+        }
+        
+        console.log('Test response:', data);
+        
+      } catch (error) {
+        showMessage("❌ Test error: " + error.message, "error");
+        console.error('Test error:', error);
+      }
+    }
+
+    async function captureAndRegister() {
+      const studentId = document.getElementById("studentId").value.trim();
+      
+      if (!studentId) {
+        showMessage("⚠️ Please enter a Student ID", "error");
+        return;
+      }
+
+      // Disable button during processing
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Processing...";
+
+      try {
+        showMessage("📸 Capturing image...", "loading");
+        
+        const blob = await captureImage();
+        
+        if (!blob) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("sid", studentId);
+        formData.append("image", blob, `${studentId}_registration.jpg`);
+
+        console.log('Registration FormData:');
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+
+        showMessage("🔄 Registering student... Please wait (this may take 30-60 seconds)", "loading");
+        
+        const response = await fetch("/register", {
+          method: "POST",
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        console.log('Registration response:', data);
+        
+        if (data.success) {
+          showMessage(`✅ Success! ${data.message}`, "success");
+          document.getElementById("studentId").value = "";
+        } else {
+          showMessage(`❌ Registration failed: ${data.message}`, "error");
+        }
+        
+      } catch (error) {
+        console.error('Registration error:', error);
+        showMessage("❌ Network error: " + error.message, "error");
+      } finally {
+        // Re-enable button
+        registerBtn.disabled = false;
+        registerBtn.textContent = "📸 Capture & Register";
+      }
+    }
+
+    // Allow Enter key to trigger registration
+    document.getElementById("studentId").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        captureAndRegister();
+      }
+    });
+
+    // Debug: Log when video is ready
+    video.addEventListener('loadeddata', () => {
+      console.log('Video loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
+    });
+
+    // Debug: Check if canvas is working
+   
+  </script>
+</body>
+</html>
