@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mark Attendance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container { text-align: center; }
+    .form-group { margin: 20px 0; }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 200px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover { background-color: #218838; }
+    #video {
+      border: 2px solid #28a745;
+      border-radius: 10px;
+    }
+    .message { margin: 20px 0; padding: 10px; border-radius: 5px; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .auto-mode { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+  </style>
+  <script src="https://unpkg.com/@zxing/library@0.19.1"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Mark Attendance</h1>
+    <a href="/">← Back to Home</a>
+    
+    <div class="form-group">
+      <label for="studentId">Student ID:</label><br>
+      <input type="text" id="studentId" placeholder="Enter Student ID or show QR code" required>
+    </div>
+    
+    <video id="video" autoplay playsinline width="400" height="300"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div class="form-group">
+      <button onclick="verifyAttendance()">Verify Attendance</button>
+      <button onclick="toggleAutoMode()" id="autoBtn">Start Auto Mode</button>
+    </div>
+    
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const messageDiv = document.getElementById("message");
+    const autoBtn = document.getElementById("autoBtn");
+    const studentIdInput = document.getElementById("studentId");
+    
+    let autoMode = false;
+    let autoInterval;
+    let verificationCount = 0;
+
+    // Start webcam + QR scanner
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        video.srcObject = stream;
+        initQRScanner();
+      })
+      .catch(err => {
+        showMessage("Error accessing camera: " + err.message, "error");
+      });
+
+    function initQRScanner() {
+      const codeReader = new ZXing.BrowserQRCodeReader();
+      codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+        if (result) {
+          const qrContent = result.getText();
+          console.log("QR Code detected:", qrContent);
+          let sid = extractStudentId(qrContent);
+          if (sid) {
+            studentIdInput.value = sid;
+            showMessage("QR Code detected. Starting attendance verification...", "success");
+            startAttendanceVerification();
+          } else {
+            showMessage("Invalid QR Code format. Please use a valid student ID QR code.", "error");
+          }
+        }
+      });
+    }
+
+   function extractStudentId(qrContent) {
+  try {
+    const data = JSON.parse(qrContent); // parse QR JSON
+    if (data.type === "student" && data.id) {
+      return data.id; // we only need the ID
+    }
+  } catch (e) {
+    console.warn("QR is not valid JSON:", qrContent);
+    return null;
+  }
+  return null;
+}
+
+    function showMessage(text, type) {
+      messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+    }
+
+    // NEW: Start verification when QR detected
+    function startAttendanceVerification() {
+      if (!autoMode) {
+        verifyAttendance();
+      }
+    }
+
+    // Auto mode toggle
+    function toggleAutoMode() {
+      autoMode = !autoMode;
+      if (autoMode) {
+        autoBtn.textContent = "Stop Auto Mode";
+        verificationCount = 0;
+        autoInterval = setInterval(verifyAttendance, 3000); // every 3s
+      } else {
+        stopAutoMode();
+      }
+    }
+
+    function stopAutoMode() {
+      autoMode = false;
+      autoBtn.textContent = "Start Auto Mode";
+      clearInterval(autoInterval);
+      verificationCount = 0;
+    }
+
+    async function verifyAttendance() {
+      const studentId = studentIdInput.value.trim();
+      if (!studentId) {
+        showMessage("Please enter a Student ID or show a QR code", "error");
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          const formData = new FormData();
+          formData.append("sid", studentId);
+          formData.append("image", blob, "attendance.jpg");
+
+          try {
+            showMessage(`Verifying attendance... (Attempt ${verificationCount + 1}/5)`, "auto-mode");
+            const response = await fetch("http://localhost:3000/verify-attendance", { method: "POST", body: formData });
+            const data = await response.json();
+
+            if (data.success) {
+              showMessage(`✅ ${data.message}`, "success");
+              verificationCount++;
+              if (verificationCount >= 5) stopAutoMode();
+            } else {
+              showMessage(`❌ ${data.message}`, "error");
+            }
+          } catch (error) {
+            showMessage("❌ Verification failed: " + error.message, "error");
+          }
+        }
+      }, "image/jpeg", 0.8);
+    }
+  </script>
+</body>
+</html>
