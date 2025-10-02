@@ -311,3 +311,6 @@ app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
   createAdminTable();
 });
+app.get("/teacher",(req,resp)=>{
+    resp.render("teacher.ejs");
+   });
