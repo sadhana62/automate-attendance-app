@@ -626,6 +626,9 @@ export default function AdminDashboard() {
         <Link to="/qr" style={{ textDecoration: "none" }}>
           <div style={sidebarItemStyle(false)}>QR Codes</div>
         </Link>
+         <Link to="/Teacher" style={{ textDecoration: "none" }}>
+          <div style={sidebarItemStyle(false)}>Add Teacher</div>
+        </Link>
       </div>
 
       {/* Main Content */}
