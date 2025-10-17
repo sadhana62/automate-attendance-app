@@ -1,0 +1,103 @@
+.class-management {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.class-management h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.class-management .form-section {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.class-management .form-section h3 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 15px;
+  padding-left: 10px;
+  border-left: 4px solid #4CAF50;
+}
+
+.class-management .form-group {
+  margin-bottom: 15px;
+}
+
+.class-management .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.class-management input[type="text"],
+.class-management select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.class-management button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px;
+}
+
+.class-management .subject-item{
+  display: flex;
+  justify-content: space-between;
+}
+
+.class-management button:hover {
+  background-color: #45a049;
+}
+
+.class-management .class-list,
+.section-list {
+  margin-top: 20px;
+}
+
+.class-management .class-item,
+.section-item {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.class-management .class-item span,
+.section-item span {
+  font-size: 16px;
+}
+
+.class-management .add-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+.class-management .error-message {
+  color: red;
+  background-color: #ffeeee;
+  border: 1px solid red;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}

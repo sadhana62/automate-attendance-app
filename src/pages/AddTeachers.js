@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
 
 const TeacherRegistration = () => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
-    father: '',
+    father_name: '',
     dob: '',
     gender: '',
     qualification: '',
@@ -12,7 +13,9 @@ const TeacherRegistration = () => {
     address: '',
     subject: [],
     classes: [],
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
+  const [registrationResult, setRegistrationResult] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -28,10 +31,69 @@ const TeacherRegistration = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSelectChange = (selectedOptions, actionMeta) => {
+    const name = actionMeta.name;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: selectedOptions ? selectedOptions.map(option => option.value) : []
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // You can add API call or validation here
+    try {
+      const response = await fetch('http://localhost:3000/register-teacher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setRegistrationResult({
+          success: true,
+          message: 'Teacher registered successfully',
+          username: data.username,
+          password: data.password,
+        });
+        // Reset form data
+        setFormData(initialFormData);
+      } else {
+        setRegistrationResult({
+          success: false,
+          message: data.message || 'Registration failed',
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setRegistrationResult({
+        success: false,
+        message: 'An error occurred during registration',
+      });
+    }
+  };
+
+  const subjectOptions = [ // Changed to interestOptions to match student form
+    { value: 'math', label: 'Mathematics' },
+    { value: 'science', label: 'Science' },
+    { value: 'literature', label: 'Literature' },
+    { value: 'history', label: 'History' },
+    { value: 'arts', label: 'Arts' },
+    { value: 'sports', label: 'Sports' },
+    { value: 'computer science', label: 'Computer Science' },
+  ];
+
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      borderColor: '#ddd',
+      boxShadow: 'none',
+      '&:hover': {
+        borderColor: '#aaa'
+      }
+    }),
+    // Add more custom styles if needed
   };
 
   const styles = {
@@ -42,15 +104,14 @@ const TeacherRegistration = () => {
       padding: '20px',
       background: '#f9f9f9',
     },
-    linkStyle : {
-    color: "green",
-    textDecoration: "none",
-    fontWeight: 500,
-    fontSize: "1rem",
-    marginBottom: "1.5rem",
-    display: "inline-block",
-  },
-
+    linkStyle: {
+      color: "green",
+      textDecoration: "none",
+      fontWeight: 500,
+      fontSize: "1rem",
+      marginBottom: "1.5rem",
+      display: "inline-block",
+    },
     heading: {
       textAlign: 'center',
       marginBottom: '20px',
@@ -114,14 +175,39 @@ const TeacherRegistration = () => {
       cursor: 'pointer',
       fontWeight: 'bold',
     },
-    
+    resultMessage: {
+      padding: '10px',
+      marginBottom: '20px',
+      borderRadius: '5px',
+      textAlign: 'center',
+    },
+    successMessage: {
+      backgroundColor: '#d4edda',
+      color: '#155724',
+    },
+    errorMessage: {
+      backgroundColor: '#f8d7da',
+      color: '#721c24',
+    },
   };
-
 
   return (
     <div style={styles.container}>
-       <a href="/admindashBoard" style={styles.linkStyle}>← Back to Home</a> 
       <h2 style={styles.heading}>Teacher Registration</h2>
+      {registrationResult && (
+        <div style={{
+          ...styles.resultMessage,
+          ...(registrationResult.success ? styles.successMessage : styles.errorMessage),
+        }}>
+          <p>{registrationResult.message}</p>
+          {registrationResult.success && (
+            <div>
+              <p>Username: {registrationResult.username}</p>
+              <p>Password: {registrationResult.password}</p>
+            </div>
+          )}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         {/* Personal Information */}
         <div style={styles.section}>
@@ -133,7 +219,7 @@ const TeacherRegistration = () => {
             </div>
             <div>
               <label style={styles.label}>Father's Name*</label>
-              <input type="text" name="father" value={formData.father} onChange={handleChange} style={styles.input} required />
+              <input type="text" name="father_name" value={formData.father_name} onChange={handleChange} style={styles.input} required />
             </div>
             <div>
               <label style={styles.label}>Date of Birth*</label>
@@ -180,9 +266,19 @@ const TeacherRegistration = () => {
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>| Academic Information</h3>
           <div style={{ ...styles.formGroup, ...styles.formGroupFull }}>
-            <div>
+            <div className="form-group form-group-full">
               <label style={styles.label}>Subject*</label>
-              <input type="text" name="subject" value={formData.subject} onChange={handleChange} style={styles.input} required />
+              <Select
+                name="subject"
+                options={subjectOptions}
+                value={subjectOptions.filter((opt) =>
+                  formData.subject.includes(opt.value)
+                )}
+                onChange={handleSelectChange}
+                styles={customSelectStyles}
+                placeholder="Select subjects"
+                isMulti
+              />
             </div>
           </div>
           <label style={{ ...styles.label, fontWeight: 'bold' }}>Classes Assigned*</label>

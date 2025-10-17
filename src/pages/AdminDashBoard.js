@@ -3,12 +3,35 @@ import { Link } from "react-router-dom";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import "./RegistrationForm.css"; // reuse your CSS
+import "./RegistrationForm.css";
+
+import AddClass from "./AddClass";
+import FaceRegister from "./RegisterPage";
+import Attendance from "./AttendancePage";
+import QRCodes from "./QR";
+import AddTeacher from "./AddTeachers";
+import Dynamictimetable from './Dynamictimetable';
 
 export default function AdminDashboard() {
   const [activePage, setActivePage] = useState("add");
+  const [showAddClass, setShowAddClass] = useState(false);
+  const [showFaceRegister, setShowFaceRegister] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
+  const [showQRCodes, setShowQRCodes] = useState(false);
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
+  const [showTimetable, setShowTimetable] = useState(false);
   const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+
+  // State for dynamic dropdown options
+  const [classOptions, setClassOptions] = useState([]);
+  const [allSections, setAllSections] = useState([]);
+  const [sectionOptions, setSectionOptions] = useState([]);
+  const [interestOptions, setInterestOptions] = useState([]);
+  // New state for timetable data
+  const [timetableOptions, setTimetableOptions] = useState({ classes: [], sections: [], subjects: [], teachers: [] });
+
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -42,32 +65,60 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchTeachers = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/all-teachers");
+      const data = await res.json();
+      if (data.success) {
+        setTeachers(data.teachers);
+      }
+    } catch (err) {
+      console.error("Failed to fetch teachers", err);
+    }
+  };
+
   useEffect(() => {
     if (activePage === "view") {
       fetchStudents();
     }
+    if (showTimetable) {
+      const fetchTimetableData = async () => {
+        const res = await fetch("http://localhost:3000/api/timetable-options");
+        const data = await res.json();
+        if (data.success) setTimetableOptions(data);
+      };
+      fetchTimetableData();
+    }
     // eslint-disable-next-line
-  }, [activePage]);
+  }, [activePage, showTimetable]);
+  
+  // Fetch options for dropdowns
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/registration-options");
+        const data = await res.json();
+        if (data.success) {
+          setClassOptions(data.classes);
+          setAllSections(data.sections);
+          setInterestOptions(data.interests);
+        }
+      } catch (err) {
+        console.error("Failed to fetch registration options", err);
+      }
+    };
+    fetchOptions();
+  }, []);
 
   // Options
-  const classOptions = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-  ].map((cls) => ({ value: cls, label: cls }));
-  const sectionOptions = ["A", "B", "C", "D", "E", "F"].map((sec) => ({
-    value: sec,
-    label: sec,
-  }));
+  useEffect(() => {
+    if (formData.class && classOptions.length > 0 && allSections.length > 0) {
+      const selectedClassObj = classOptions.find(c => c.value === formData.class);
+      const relevantSections = allSections.filter(s => s.class_id === selectedClassObj.id);
+      setSectionOptions(relevantSections.map(s => ({ value: s.name, label: s.name })));
+    }
+  }, [formData.class, classOptions, allSections]);
+
   const bloodGroupOptions = [
     "A+",
     "A-",
@@ -112,16 +163,6 @@ export default function AdminDashboard() {
     "Uttarakhand",
     "West Bengal",
   ].map((s) => ({ value: s, label: s }));
-
-  const interestOptions = [
-    "Painting",
-    "Dancing",
-    "Analytical Maths",
-    "Music",
-    "Sports",
-    "Drama",
-    "Coding",
-  ].map((i) => ({ value: i, label: i }));
 
   // Select styles
   const customSelectStyles = {
@@ -173,6 +214,7 @@ export default function AdminDashboard() {
   };
 
   const handleSubmit = async (e) => {
+    console.log("Form Data on Submit:", formData);
     e.preventDefault();
     const payload = {
       name: formData.firstName + " " + formData.lastName,
@@ -193,15 +235,21 @@ export default function AdminDashboard() {
       interests: formData.interest,
     };
 
+    const isUpdating = editingIndex !== null;
+    const url = isUpdating
+      ? `http://localhost:3000/api/student/${students[editingIndex].id}`
+      : "http://localhost:3000/register-student";
+    const method = isUpdating ? "PUT" : "POST";
+
     try {
-      const res = await fetch("http://localhost:3000/register-student", {
-        method: "POST",
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
-        alert("Student registered successfully!");
+        alert(`Student ${isUpdating ? "updated" : "registered"} successfully!`);
         setFormData({
           firstName: "",
           lastName: "",
@@ -221,26 +269,62 @@ export default function AdminDashboard() {
           password: "",
           interest: [],
         });
+        setEditingIndex(null);
         setActivePage("view");
         fetchStudents(); // Refresh list
       } else {
         console.log("Else part");
-        alert(data.message || "Registration failed");
+        alert(data.message || `${isUpdating ? "Update" : "Registration"} failed`);
       }
     } catch (err) {
-      alert("Error registering student");
+      alert(`Error ${isUpdating ? "updating" : "registering"} student`);
       console.error(err);
     }
   };
 
   const handleEdit = (index) => {
-    setFormData(students[index]);
+    const student = students[index];
+    const nameParts = student.name.split(" ");
+    setFormData({
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" ") || "",
+      dob: student.dob ? new Date(student.dob) : "",
+      gender: student.gender || "",
+      class: student.class || "",
+      section: student.section || "",
+      fatherName: student.father_name || "",
+      motherName: student.mother_name || "",
+      street: student.street || "",
+      city: student.city || "",
+      state: student.state || "",
+      zipCode: student.zip || "",
+      phone: student.phone || "",
+      email: student.email || "",
+      bloodGroup: student.blood_group || "",
+      password: student.password || "",
+      interest: student.interests || [],
+    });
     setEditingIndex(index);
     setActivePage("add");
   };
 
-  const handleDelete = (index) => {
-    setStudents(students.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    const studentToDelete = students[index];
+    if (window.confirm(`Are you sure you want to delete ${studentToDelete.name}?`)) {
+      try {
+        const res = await fetch(`http://localhost:3000/api/student/${studentToDelete.id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          alert('Student deleted successfully!');
+          fetchStudents(); // Refresh the list from the DB
+        } else {
+          alert(data.message || 'Failed to delete student.');
+        }
+      } catch (err) {
+        alert('An error occurred while deleting the student.');
+        console.error(err);
+      }
+    }
   };
 
   // Layout styles
@@ -284,6 +368,28 @@ export default function AdminDashboard() {
     border: "1px solid #ddd",
     padding: "10px",
     textAlign: "left",
+
+    
+  };
+  const editButtonStyle = {
+    backgroundColor: "#2196F3", // Blue
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    padding: "8px 12px",
+    cursor: "pointer",
+    marginRight: "5px",
+    fontSize: "14px",
+  };
+
+  const deleteButtonStyle = {
+    backgroundColor: "#f44336", // Red
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontSize: "14px",
   };
 
   // Content renderer
@@ -535,70 +641,111 @@ export default function AdminDashboard() {
     }
 
     if (activePage === "view") {
+      // Group students by class
+      const studentsByClass = students.reduce((acc, student) => {
+        const studentClass = student.class || "Unassigned";
+        if (!acc[studentClass]) {
+          acc[studentClass] = [];
+        }
+        acc[studentClass].push(student);
+        return acc;
+      }, {});
+
+      // Sort class keys numerically
+      const sortedClasses = Object.keys(studentsByClass).sort((a, b) => {
+        if (a === "Unassigned") return 1;
+        if (b === "Unassigned") return -1;
+        return parseInt(a, 10) - parseInt(b, 10);
+      });
+
       return (
         <div style={cardStyle}>
           <h2 style={headingStyle}>View Student Details</h2>
           {students.length === 0 ? (
             <p>No students registered yet.</p>
           ) : (
-            <table style={tableStyle}>
-              <thead>
-                <tr>
-                  <th style={thtdStyle}>First</th>
-                  <th style={thtdStyle}>Last</th>
-                  <th style={thtdStyle}>Class</th>
-                  <th style={thtdStyle}>Section</th>
-                  <th style={thtdStyle}>Father</th>
-                  <th style={thtdStyle}>Mother</th>
-                  <th style={thtdStyle}>DOB</th>
-                  <th style={thtdStyle}>Gender</th>
-                  <th style={thtdStyle}>Phone</th>
-                  <th style={thtdStyle}>Email</th>
-                  <th style={thtdStyle}>Blood</th>
-                  <th style={thtdStyle}>Interests</th>
-                  <th style={thtdStyle}>Address</th>
-                  <th style={thtdStyle}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((s, i) => (
-                  <tr key={i}>
-                    <td style={thtdStyle}>{s.name?.split(" ")[0]}</td>
-                    <td style={thtdStyle}>{s.name?.split(" ")[1] || ""}</td>
-                    <td style={thtdStyle}>{s.class ? s.class : "2"}</td>
-                    <td style={thtdStyle}>{s.section ? s.ection : "B"}</td>
-                    <td style={thtdStyle}>{s.father_name}</td>
-                    <td style={thtdStyle}>{s.mother_name}</td>
-                    <td style={thtdStyle}>
-                      {s.dob ? new Date(s.dob).toLocaleDateString() : ""}
-                    </td>
-                    <td style={thtdStyle}>{s.gender}</td>
-                    <td style={thtdStyle}>{s.phone}</td>
-                    <td style={thtdStyle}>{s.email}</td>
-                    <td style={thtdStyle}>{s.blood_group}</td>
-                    <td style={thtdStyle}>
-                      {s.interests && s.interests.length > 0
-                        ? s.interests.join(", ")
-                        : "—"}
-                    </td>
-                    <td style={thtdStyle}>
-                      {s.street}, {s.city}, {s.state}, {s.zip}
-                    </td>
-                    <td style={thtdStyle}>
-                      {/* You can implement edit/delete if needed */}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            sortedClasses.map((className) => (
+              <div key={className} style={{ marginBottom: "40px" }}>
+                <h3 style={{ ...headingStyle, fontSize: "20px", borderBottom: "2px solid #eee", paddingBottom: "10px" }}>
+                  Class: {className}
+                </h3>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thtdStyle}>First</th>
+                      <th style={thtdStyle}>Last</th>
+                      <th style={thtdStyle}>Section</th>
+                      <th style={thtdStyle}>Father</th>
+                      <th style={thtdStyle}>Mother</th>
+                      <th style={thtdStyle}>DOB</th>
+                      <th style={thtdStyle}>Gender</th>
+                      <th style={thtdStyle}>Phone</th>
+                      <th style={thtdStyle}>Email</th>
+                      <th style={thtdStyle}>Blood</th>
+                      <th style={thtdStyle}>Interests</th>
+                      <th style={thtdStyle}>Address</th>
+                      <th style={thtdStyle}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentsByClass[className].map((s, i) => {
+                      const originalIndex = students.findIndex(student => student.id === s.id);
+                      return (
+                        <tr key={s.id}>
+                          <td style={thtdStyle}>{s.name?.split(" ")[0]}</td>
+                          <td style={thtdStyle}>{s.name?.split(" ").slice(1).join(" ") || ""}</td>
+                          <td style={thtdStyle}>{s.section || "N/A"}</td>
+                          <td style={thtdStyle}>{s.father_name}</td>
+                          <td style={thtdStyle}>{s.mother_name}</td>
+                          <td style={thtdStyle}>{s.dob ? new Date(s.dob).toLocaleDateString() : ""}</td>
+                          <td style={thtdStyle}>{s.gender}</td>
+                          <td style={thtdStyle}>{s.phone}</td>
+                          <td style={thtdStyle}>{s.email}</td>
+                          <td style={thtdStyle}>{s.blood_group}</td>
+                          <td style={thtdStyle}>{s.interests?.join(", ") || "—"}</td>
+                          <td style={thtdStyle}>{`${s.street || ''}, ${s.city || ''}, ${s.state || ''}, ${s.zip || ''}`}</td>
+                          <td style={{ ...thtdStyle, display: "flex" }}>
+                            <button onClick={() => handleEdit(originalIndex)} style={editButtonStyle}>Edit</button>
+                            <button onClick={() => handleDelete(originalIndex)} style={deleteButtonStyle}>Delete</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ))
           )}
         </div>
       );
     }
+      if (showAddClass) {
+      return <AddClass />;
+    }
+
+    if (showFaceRegister) {
+      return <FaceRegister />;
+    }
+
+    if (showAttendance) {
+      return <Attendance />;
+    }
+
+    if (showQRCodes) {
+      return <QRCodes />;
+    }
+
+    if (showAddTeacher) {
+      return <AddTeacher />;
+    }
+
+    if (showTimetable) {
+      return <Dynamictimetable {...timetableOptions} />;
+    }
   };
 
   return (
-    <div style={containerStyle}>
+   <div style={containerStyle}>
       {/* Sidebar */}
       <div style={sidebarStyle}>
         <h2 style={{ marginBottom: "30px", fontSize: "20px" }}>Admin Panel</h2>
@@ -607,29 +754,105 @@ export default function AdminDashboard() {
           onClick={() => {
             setActivePage("add");
             setEditingIndex(null);
+            setShowAddClass(false);
+            setShowFaceRegister(false);
+            setShowAttendance(false);
+            setShowQRCodes(false);
+            setShowAddTeacher(false);
+            setShowTimetable(false);
           }}
         >
           Add Student
         </div>
         <div
           style={sidebarItemStyle(activePage === "view")}
-          onClick={() => setActivePage("view")}
+          onClick={() => {
+            setActivePage("view");
+            setShowAddClass(false);
+            setShowFaceRegister(false);
+            setShowAttendance(false);
+            setShowQRCodes(false);
+            setShowAddTeacher(false);
+            setShowTimetable(false);
+          }}
         >
           View Student Details
         </div>
-        <Link to="/register" style={{ textDecoration: "none" }}>
-          <div style={sidebarItemStyle(false)}> Face Register</div>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(true);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+        }}>
+          <div style={sidebarItemStyle(showAddClass)}>Add Class</div>
         </Link>
-        <Link to="/attendance" style={{ textDecoration: "none" }}>
-          <div style={sidebarItemStyle(false)}>Attendance</div>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(true);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+        }}>
+          <div style={sidebarItemStyle(showFaceRegister)}>Face Register</div>
         </Link>
-        <Link to="/qr" style={{ textDecoration: "none" }}>
-          <div style={sidebarItemStyle(false)}>QR Codes</div>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(true);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+        }}>
+          <div style={sidebarItemStyle(showAttendance)}>Attendance</div>
         </Link>
-         <Link to="/Teacher" style={{ textDecoration: "none" }}>
-          <div style={sidebarItemStyle(false)}>Add Teacher</div>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(true);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+        }}>
+          <div style={sidebarItemStyle(showQRCodes)}>QR Codes</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(true);
+          setShowTimetable(false);
+        }}>
+          <div style={sidebarItemStyle(showAddTeacher)}>Add Teacher</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(true);
+        }}>
+          <div style={sidebarItemStyle(showTimetable)}>Create Timetable</div>
         </Link>
       </div>
+
+     
 
       {/* Main Content */}
       <div style={contentStyle}>{renderContent()}</div>

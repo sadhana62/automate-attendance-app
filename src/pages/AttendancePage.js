@@ -229,7 +229,7 @@ export default function AttendancePage() {
     <div style={pageStyle}>
       <div style={cardStyle}>
         <div style={titleStyle}>Mark Attendance</div>
-        <a href="/admindashBoard" style={linkStyle}>← Back to Home</a>
+       
 
         <form
           onSubmit={e => {

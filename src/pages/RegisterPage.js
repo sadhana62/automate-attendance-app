@@ -224,9 +224,7 @@ function RegisterPage() {
   return (
     <div style={styles.container}>
       <div style={styles.innerBox}>
-        <Link to="/admindashBoard" style={styles.backLink}>
-          ← Back to Home
-        </Link>
+       
 
         <div style={styles.header}>
           <h1>👤 Student Registration</h1>

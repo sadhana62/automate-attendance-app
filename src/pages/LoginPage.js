@@ -1,25 +1,25 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("admin");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault(); 
     try {
       const res = await fetch("http://localhost:3000/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, role }),
       });
       const data = await res.json();
       if (data.success) {
         // onLoginSuccess();
-        console.log("suceesful login")
+        console.log("successful login")
         navigate("/admindashBoard");
 
       } else {
@@ -118,6 +118,25 @@ export default function LoginPage() {
     fontWeight: "bold",
   };
 
+  // New styles for radio buttons
+  const radioGroupStyle = {
+    display: "flex",
+    justifyContent: "space-around",
+    marginBottom: "25px",
+  };
+
+  const radioLabelStyle = {
+    display: "flex",
+    alignItems: "center",
+    cursor: "pointer",
+    fontSize: "16px",
+  };
+
+  const radioInputStyle = {
+    marginRight: "10px",
+    cursor: "pointer",
+  };
+
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
@@ -134,12 +153,40 @@ export default function LoginPage() {
         <div style={rightStyle}>
           <h2 style={headingStyle}>Login Here</h2>
 
+           {/* New radio buttons for role selection */}
+            <div style={radioGroupStyle}>
+              <label style={radioLabelStyle}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={role === "admin"}
+                  onChange={() => setRole("admin")}
+                  style={radioInputStyle}
+                />
+                Admin
+              </label>
+              <label style={radioLabelStyle}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="teacher"
+                  checked={role === "teacher"}
+                  onChange={() => setRole("teacher")}
+                  style={radioInputStyle}
+                />
+                Teacher
+              </label>
+            </div>
+
           <form onSubmit={handleSubmit}>
             <label style={labelStyle}>UserName:</label>
             <input type="input" style={inputStyle} onChange={e => setUsername(e.target.value)}  required/>
 
             <label style={labelStyle}>Password:</label>
             <input type="password" style={inputStyle} onChange={e => setPassword(e.target.value)}  required/>
+
+           
 
             <button type="submit" style={buttonStyle}>
               Login
@@ -152,8 +199,6 @@ export default function LoginPage() {
               </div>
             )}
           </form>
-
-          {/* <p style={footerStyle}>Don&apos;t Have An Account?</p> */}
         </div>
       </div>
     </div>

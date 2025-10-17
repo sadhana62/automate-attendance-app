@@ -9,7 +9,8 @@ import AttendancePage from "./pages/AttendancePage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/AdminDashBoard";
 import AddTeachers from "./pages/AddTeachers";
-import RegistrationForm from "./pages/RegistrationForm";
+import Dynamictimetable from './pages/Dynamictimetable';
+import AddClass from "./pages/AddClass";
 import QR from "./pages/QR";
 
 function App() {
@@ -20,8 +21,11 @@ function App() {
       <Routes>
         {/* Home page */}
         <Route path="/" element={<LoginPage/>} />
+
         <Route path="/admindashBoard" element={<AdminDashboard/>} />
 
+
+        <Route path="/addclass" element={<AddClass/>} />
         {/* Register page */}
         <Route path="/register" element={<RegisterPage />} />
 
@@ -33,6 +37,8 @@ function App() {
       {/* Add Teacher */}
         <Route path="/Teacher" element={<AddTeachers />} />
 
+          <Route path="/createTimeTable" element={<Dynamictimetable />} />
+      
 
         {/* 404 fallback */}
         <Route path="*" element={<h1 style={{ textAlign: "center" }}>404 Page Not Found</h1>} />

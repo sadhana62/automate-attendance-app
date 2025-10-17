@@ -1,9 +1,4 @@
-import React, { useState } from "react";
-
-const classes = ["Class 1", "Class 2", "Class 3"];
-const sections = ["Section A", "Section B", "Section C"];
-const subjects = ["Math", "Science", "English", "History", "Art"];
-const teachers = ["Mr. Sharma", "Ms. Verma", "Mr. Khan", "Mrs. Roy"];
+import React, { useState, useEffect } from "react";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const timeSlots = [
@@ -14,9 +9,11 @@ const timeSlots = [
   "1:30 PM - 2:30 PM"
 ];
 
-const Timetable = () => {
-  const [selectedClass, setSelectedClass] = useState("Class 1");
-  const [selectedSection, setSelectedSection] = useState("Section A");
+const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }) => {
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [filteredSections, setFilteredSections] = useState([]);
+
   const [timetable, setTimetable] = useState(
     timeSlots.map(() =>
       days.map(() => ({
@@ -27,6 +24,19 @@ const Timetable = () => {
   );
 
   const [showGeneratedTable, setShowGeneratedTable] = useState(false);
+
+  useEffect(() => {
+    if (selectedClassId) {
+      const relevantSections = sections.filter(s => s.class_id === parseInt(selectedClassId, 10));
+      setFilteredSections(relevantSections);
+      setSelectedSection(relevantSections[0]?.name || '');
+    } else {
+      setFilteredSections([]);
+      setSelectedSection('');
+    }
+  }, [selectedClassId, sections]);
+
+  const selectedClassName = classes.find(c => c.id === parseInt(selectedClassId, 10))?.name || '';
 
   const handleChange = (timeIdx, dayIdx, field, value) => {
     const newTimetable = [...timetable];
@@ -53,13 +63,14 @@ const Timetable = () => {
             <div>
               <label style={styles.label}>Class: </label>
               <select
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
                 style={styles.select}
               >
+                <option value="">Select Class</option>
                 {classes.map((cls) => (
-                  <option key={cls} value={cls}>
-                    {cls}
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
                   </option>
                 ))}
               </select>
@@ -72,9 +83,9 @@ const Timetable = () => {
                 onChange={(e) => setSelectedSection(e.target.value)}
                 style={styles.select}
               >
-                {sections.map((sec) => (
-                  <option key={sec} value={sec}>
-                    {sec}
+                {filteredSections.map((sec) => (
+                  <option key={sec.id} value={sec.name}>
+                    {sec.name}
                   </option>
                 ))}
               </select>
@@ -144,7 +155,7 @@ const Timetable = () => {
       {showGeneratedTable && (
         <div id="printArea">
           <h2 style={styles.heading}>
-            📌 Final Timetable - {selectedClass} ({selectedSection})
+            📌 Final Timetable - {selectedClassName} ({selectedSection})
           </h2>
           <div style={styles.buttonGroup}>
   <button onClick={handlePrint} style={styles.printBtn}>
@@ -293,7 +304,7 @@ const styles = {
 
 buttonGroup: {
   display: "flex",
-  justifyContent: "center",
+  justifyContent: "center", // This will center the buttons horizontally
   gap: "15px",
   marginBottom: "20px",
 },
