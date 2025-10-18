@@ -80,7 +80,7 @@ async function createTeachersTable() {
   try {
        
     await conn.query(`
-      CREATE TABLE School_teachers (
+      CREATE TABLE IF NOT EXISTS School_teachers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         father_name VARCHAR(255) NOT NULL,
