@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config(); // Load environment variables from .env file
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -6,9 +7,11 @@ const axios = require('axios');
 const FormData = require('form-data');
 const app = express();
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const port = process.env.PORT || 3000;
 const QRCode = require("qrcode");
 const conn = require("./db");
+
 
 app.use(cors());
 app.use(express.json()); // ✅ Added to handle JSON request bodies
@@ -29,6 +32,52 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+// Nodemailer transporter setup
+// IMPORTANT: Replace with your actual email service credentials.
+// For better security, use environment variables instead of hardcoding.
+// Example for Gmail:
+// process.env.EMAIL_USER -> your.email@gmail.com
+// process.env.EMAIL_PASS -> your_gmail_app_password
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // or another email service
+  auth: {
+    user: process.env.EMAIL_USER || 'sih49208@gmail.com', // Replace with your email
+    pass: process.env.EMAIL_PASS || 'sih@password'    // Replace with your email password or app-specific password
+  }
+});
+
+// --- DEBUGGING ---
+// Check if the environment variables are loaded correctly.
+console.log('Attempting to use email user:', process.env.EMAIL_USER ? 'Loaded from .env' : 'Using fallback value');
+
+async function sendCredentialsEmail(toEmail, username, password) {
+  const mailOptions = {
+    from: process.env.EMAIL_USER || 'sih49208@gmail.com',
+    to: toEmail,
+    subject: 'Your Account Credentials for Smart Attendance System',
+    html: `
+      <p>Hello,</p>
+      <p>An account has been created for you on the Smart Attendance and Management System.</p>
+      <p>Here are your login credentials:</p>
+      <ul>
+        <li><strong>Username:</strong> ${username}</li>
+        <li><strong>Password:</strong> ${password}</li>
+      </ul>
+      <p>Please keep these credentials safe.</p>
+      <p>Thank you!</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Credentials email sent successfully to ${toEmail}`);
+  } catch (error) {
+    console.error(`❌ Error sending credentials email to ${toEmail}:`, error);
+    // We don't re-throw the error, as the registration itself was successful.
+    // You might want to add more robust error handling or logging here.
+  }
+}
 
 
 // ✅ Function to create admin_login table if it doesn't exist
@@ -304,7 +353,18 @@ app.post('/register-teacher', express.json(), async (req, res) => {
 
     const teacherId = teacherResult.insertId;
 
+    // Also insert credentials into the admin_login table for authentication
+    const insertLoginQuery = `
+      INSERT INTO admin_login (username, password, role)
+      VALUES (?, ?, 'teacher')
+    `;
+    await connection.query(insertLoginQuery, [username, password]);
+
+
     await connection.commit();
+
+    // Send credentials email to the teacher
+    await sendCredentialsEmail(email, username, password);
 
     console.log(`Teacher registered successfully: ${teacherId}`);
 
