@@ -12,6 +12,9 @@ import AddTeachers from "./pages/AddTeachers";
 import Dynamictimetable from './pages/Dynamictimetable';
 import AddClass from "./pages/AddClass";
 import QR from "./pages/QR";
+import AdminNoticeBoard from "./pages/AdminNoticeBoard";
+import TeacherNoticeBoard from "./pages/TeacherNoticeBoard";
+
 
 function App() {
   
@@ -33,6 +36,12 @@ function App() {
         <Route path="/attendance" element={<AttendancePage />} />
 
       <Route path="/qr" element={<QR />} />
+      
+        {/* Admin Notice Board */}
+        <Route path="/admin-notice-board" element={<AdminNoticeBoard />} />     
+        {/* Teacher Notice Board */}
+        <Route path="/teacher-notice-board" element={<TeacherNoticeBoard />} /> 
+
 
       {/* Add Teacher */}
         <Route path="/Teacher" element={<AddTeachers />} />
