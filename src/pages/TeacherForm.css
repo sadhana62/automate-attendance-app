@@ -1,0 +1,99 @@
+/* TeacherForm.css */
+
+.form-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-card {
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  padding: 40px 32px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.teacher-card h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 8px;
+}
+
+.teacher-card p {
+  color: #555;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.teacher-form .form-group {
+  margin-bottom: 18px;
+}
+
+.teacher-form label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.teacher-form input,
+.teacher-form select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #bdbdbd;
+  font-size: 15px;
+  background: #f7f9fa;
+  transition: border-color 0.2s;
+}
+
+.teacher-form input:focus,
+.teacher-form select:focus {
+  border-color: #1976d2;
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  flex: 1;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #115293;
+}
+
+.btn-secondary {
+  flex: 1;
+  background: #e0e0e0;
+  color: #333;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #bdbdbd;
+}

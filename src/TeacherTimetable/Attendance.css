@@ -1,0 +1,54 @@
+.attendance-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* QR Code Section */
+.qr-section {
+  width: 250px;
+  height: 250px;
+  background-color: #e0f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  font-style: italic;
+  color: #00796b;
+  font-size: 1.2rem;
+  font-weight: bold; /* Make QR text bold */
+}
+
+/* Attendance Card */
+.attendance-card {
+  width: 95%;
+  max-width: 900px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Row in the card */
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Each info box */
+.card-box {
+  flex: 1;
+  min-width: 150px;
+  background-color: #e0f7fa;
+  padding: 15px 20px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold; /* Make info text bold */
+  color: #00796b;
+}
