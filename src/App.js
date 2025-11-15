@@ -14,6 +14,7 @@ import AddClass from "./pages/AddClass";
 import QR from "./pages/QR";
 import AdminNoticeBoard from "./pages/AdminNoticeBoard";
 import TeacherNoticeBoard from "./pages/TeacherNoticeBoard";
+import TeacherDashboard from "./TeacherTimeTable/TeacherDashboard";
 
 
 function App() {
@@ -26,6 +27,8 @@ function App() {
         <Route path="/" element={<LoginPage/>} />
 
         <Route path="/admindashBoard" element={<AdminDashboard/>} />
+
+        <Route path="/teacherdashboard" element={<TeacherDashboard />} />
 
 
         <Route path="/addclass" element={<AddClass/>} />

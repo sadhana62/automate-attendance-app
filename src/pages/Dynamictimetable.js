@@ -44,7 +44,28 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
     setTimetable(newTimetable);
   };
 
-  const handleGenerateTemplate = () => {
+  const handleGenerateTemplate = async () => {
+    if (!selectedClassId || !selectedSection) {
+      alert("Please select a class and section first.");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/timetable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          class_id: selectedClassId,
+          section_name: selectedSection,
+          timetable_data: timetable,
+        }),
+      });
+      const data = await response.json();
+      alert(data.message);
+      if (!data.success) return;
+    } catch (error) {
+      alert("An error occurred while saving the timetable.");
+    }
     setShowGeneratedTable(true);
   };
 
@@ -183,11 +204,11 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
                 <tr key={slot}>
                   <td style={styles.timeColumn}>{slot}</td>
                   {days.map((_, dayIdx) => {
-                    const entry = timetable[timeIdx][dayIdx];
+                    const entry = timetable[timeIdx]?.[dayIdx] || { subject: '', teacher: '' };
                     return (
                       <td key={`${timeIdx}-${dayIdx}`} style={styles.cell}>
-                        <div><strong>{entry.subject}</strong></div>
-                        <div>{entry.teacher}</div>
+                        <div><strong>{entry.subject || '-'}</strong></div>
+                        <div style={{fontSize: '12px', color: '#555'}}>{entry.teacher || ''}</div>
                       </td>
                     );
                   })}

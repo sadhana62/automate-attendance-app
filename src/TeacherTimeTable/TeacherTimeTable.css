@@ -1,0 +1,79 @@
+.timetable-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  font-family: "Poppins", sans-serif;
+}
+
+.timetable-heading {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #0e3f22;
+}
+
+.timetable-card {
+  width: 85%;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.timetable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.timetable th,
+.timetable td {
+  border: 2px solid #12502b;
+  padding: 12px;
+  text-align: center;
+}
+
+.timetable th {
+  background-color: #12502b;
+  color: white;
+}
+
+.special-period {
+  background-color: #d9f2e6;
+  color: #0e3f22;
+}
+
+/* Holiday Section */
+.holiday-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.holiday-section h2 {
+  font-size: 26px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #0e3f22;
+  text-decoration: underline;
+}
+
+.holiday-box {
+  background-color: #e0f7fa;
+  padding: 15px 30px;
+  display: inline-block;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 2px solid #00acc1;
+}
+
+.yes {
+  color: #00a84f;
+}
+
+.no {
+  color: #d32f2f;
+}
+

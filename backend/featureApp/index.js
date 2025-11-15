@@ -329,7 +329,7 @@ app.post('/register-teacher', express.json(), async (req, res) => {
   try {
     const {
       name, father_name, dob, gender, qualification, phone, email, address,
-      subject, classes, interest // interest is received but will be ignored
+      subject, classes
     } = req.body;
 
     connection = await conn.getConnection();
@@ -721,6 +721,24 @@ app.delete('/api/subject/:id', async (req, res) => {
   }
 });
 
+async function createTimetablesTable() {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS timetables (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        class_id INT NOT NULL,
+        section_name VARCHAR(50) NOT NULL,
+        timetable_data JSON NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY (class_id, section_name)
+      )
+    `);
+    console.log("✅ 'timetables' table is ready.");
+  } catch (err) {
+    console.error("❌ Error creating timetables table:", err);
+  }
+}
+
 // Endpoint for student registration form dropdowns
 app.get('/api/registration-options', async (req, res) => {
   try {
@@ -748,13 +766,17 @@ app.get('/api/timetable-options', async (req, res) => {
     const [classes] = await conn.query('SELECT id, name FROM classes ORDER BY name');
     const [sections] = await conn.query('SELECT id, name, class_id FROM sections ORDER BY name');
     const [subjects] = await conn.query('SELECT DISTINCT name FROM class_subjects ORDER BY name');
-    const [teachers] = await conn.query('SELECT id, name FROM School_teachers ORDER BY name');
+    const [teachers] = await conn.query('SELECT DISTINCT name FROM School_teachers ORDER BY name');
+
+    // Create a unique, sorted list of subjects and add "Leisure"
+    const subjectNames = subjects.map(s => s.name);
+    const allSubjects = [...new Set(["Leisure", ...subjectNames])].sort();
 
     res.json({
       success: true,
       classes: classes.map(c => ({ id: c.id, name: c.name })),
       sections: sections, // will be filtered on frontend
-      subjects: subjects.map(s => s.name),
+      subjects: allSubjects,
       teachers: teachers.map(t => t.name),
     });
 
@@ -768,11 +790,110 @@ app.get('/api/timetable-options', async (req, res) => {
   }
 });
 
+// POST a new timetable or update an existing one
+app.post('/api/timetable', async (req, res) => {
+  const { class_id, section_name, timetable_data } = req.body;
+
+  if (!class_id || !section_name || !timetable_data) {
+    return res.status(400).json({ success: false, message: 'Missing required timetable data.' });
+  }
+
+  try {
+    const query = `
+      INSERT INTO timetables (class_id, section_name, timetable_data)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE timetable_data = VALUES(timetable_data)
+    `;
+    await conn.query(query, [class_id, section_name, JSON.stringify(timetable_data)]);
+    res.json({ success: true, message: 'Timetable saved successfully!' });
+  } catch (error) {
+    console.error('Error saving timetable:', error);
+    res.status(500).json({ success: false, message: 'Error saving timetable', error: error.message });
+  }
+});
+
+// GET all saved timetables
+app.get('/api/timetables', async (req, res) => {
+  try {
+    const [timetables] = await conn.query(`
+      SELECT 
+        t.id, 
+        t.class_id, 
+        c.name as class_name, 
+        t.section_name, 
+        t.timetable_data 
+      FROM timetables t
+      JOIN classes c ON t.class_id = c.id
+      ORDER BY c.name, t.section_name
+    `);
+    res.json({ success: true, timetables });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching timetables', error: error.message });
+  }
+});
+
+// DELETE a timetable
+app.delete('/api/timetable/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await conn.query('DELETE FROM timetables WHERE id = ?', [id]);
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: 'Timetable deleted successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'Timetable not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting timetable', error: error.message });
+  }
+});
+
+// Endpoint to get a specific teacher's timetable
+app.get('/api/teacher-timetable/:username', async (req, res) => {
+  const { username } = req.params;
+
+  // In a real application, you would query your database
+  // to get the timetable for the teacher with the given username.
+  // For this example, we'll return a hardcoded timetable.
+
+  // This is a sample structure. You should build this from your database tables.
+  const sampleTimetable = {
+    "Monday": [
+      { time: "09:00-10:00", class: "10-A", subject: "Mathematics" },
+      { time: "11:00-12:00", class: "9-B", subject: "Mathematics" },
+    ],
+    "Tuesday": [
+      { time: "10:00-11:00", class: "10-A", subject: "Mathematics" },
+      { time: "13:30-14:30", class: "8-A", subject: "Physics" },
+    ],
+    "Wednesday": [
+      { time: "09:00-10:00", class: "9-B", subject: "Mathematics" },
+    ],
+    "Thursday": [
+      { time: "10:00-11:00", class: "10-A", subject: "Mathematics" },
+      { time: "11:00-12:00", class: "8-A", subject: "Physics" },
+    ],
+    "Friday": [
+      { time: "09:00-10:00", class: "9-B", subject: "Mathematics" },
+      { time: "13:30-14:30", class: "8-A", subject: "Physics" },
+    ],
+    "Saturday": [],
+  };
+
+  // You can add logic here to check if the teacher exists
+  // const [teacher] = await conn.query('SELECT * FROM School_teachers WHERE username = ?', [username]);
+  // if (!teacher.length) {
+  //   return res.status(404).json({ success: false, message: 'Teacher not found' });
+  // }
+
+  res.json({ success: true, timetable: sampleTimetable });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
   createAdminTable();
   createTeachersTable();
   
+  createTimetablesTable();
   createClassManagementTables();
 });

@@ -27,11 +27,11 @@ export default function QR() {
         All Students QR Codes
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" style={{"display":"flex"}}>
+      <div className="flex flex-wrap gap-6 justify-center">
         {students.map((student) => (
           <div
             key={student.id}
-            className="bg-white border border-gray-300 rounded-xl p-4 text-center shadow-md hover:scale-105 transition-transform"
+            className="p-4 bg-white rounded-lg shadow-md text-center w-48"
           >
             <div className="qr mb-3">
               <img
@@ -40,17 +40,13 @@ export default function QR() {
                 className="w-36 h-36 mx-auto"
               />
             </div>
-            <div className="name font-semibold text-lg text-gray-900">
-              {student.name}
-            </div>
+            <div className="name font-semibold text-lg text-gray-900">{student.name}</div>
             <div className="id text-sm text-gray-600 mb-3">ID: {student.id}</div>
             <a
               className="download-btn inline-block px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
               href={student.qr}
               download={`student_${student.id}.png`}
-            >
-              Download
-            </a>
+            >Download</a>
           </div>
         ))}
       </div>

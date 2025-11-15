@@ -18,9 +18,15 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // onLoginSuccess();
-        console.log("successful login")
-        navigate("/admindashBoard");
+        // Store user info for other parts of the app
+        localStorage.setItem('user', JSON.stringify({ username, role: data.role }));
+
+        if (data.role === 'admin') {
+          navigate("/admindashBoard");
+        } else if (data.role === 'teacher') {
+          // Navigate to the new teacher dashboard
+          navigate("/teacherdashboard");
+        }
 
       } else {
         setError(data.message || "Invalid credentials");

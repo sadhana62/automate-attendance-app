@@ -1,0 +1,81 @@
+.teacher-dashboard {
+  display: flex;
+  height: 100vh;
+  background-color: #f4f6f9;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #263238;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 15px; /* add padding for top/bottom */
+  justify-content: flex-start; /* align buttons from top */
+}
+
+.sidebar-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fff;
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: background 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 12px; /* space between buttons */
+}
+
+.sidebar-btn:last-child {
+  margin-bottom: 0; /* remove extra space after last button */
+}
+
+.sidebar-btn:hover {
+  background-color: #37474f;
+}
+
+.sidebar-btn.active {
+  background-color: #00acc1;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+}
+
+/* Content Box */
+.content-box {
+  text-align: center;
+  margin-top: 60px;
+}
+
+.placeholder-box {
+  background-color: #e0f7fa;
+  padding: 25px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.holiday-box {
+  margin-top: 25px;
+  font-size: 1.3rem;
+}
+
+.holiday-box .yes {
+  color: green;
+  font-weight: bold;
+}
+
+.holiday-box .no {
+  color: red;
+  font-weight: bold;
+}

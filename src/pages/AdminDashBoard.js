@@ -8,9 +8,10 @@ import "./RegistrationForm.css";
 import AddClass from "./AddClass";
 import FaceRegister from "./RegisterPage";
 import Attendance from "./AttendancePage";
-import QRCodes from "./QR";
+import QR from "./QR";
 import AddTeacher from "./AddTeachers";
 import Dynamictimetable from './Dynamictimetable';
+import ViewTimetables from './ViewTimetables';
 
 export default function AdminDashboard() {
   const [activePage, setActivePage] = useState("add");
@@ -20,6 +21,7 @@ export default function AdminDashboard() {
   const [showQRCodes, setShowQRCodes] = useState(false);
   const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [showTimetable, setShowTimetable] = useState(false);
+  const [showViewTimetables, setShowViewTimetables] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -732,7 +734,7 @@ export default function AdminDashboard() {
     }
 
     if (showQRCodes) {
-      return <QRCodes />;
+      return <QR />;
     }
 
     if (showAddTeacher) {
@@ -741,6 +743,10 @@ export default function AdminDashboard() {
 
     if (showTimetable) {
       return <Dynamictimetable {...timetableOptions} />;
+    }
+
+    if (showViewTimetables) {
+      return <ViewTimetables />;
     }
   };
 
@@ -760,6 +766,7 @@ export default function AdminDashboard() {
             setShowQRCodes(false);
             setShowAddTeacher(false);
             setShowTimetable(false);
+            setShowViewTimetables(false);
           }}
         >
           Add Student
@@ -774,6 +781,7 @@ export default function AdminDashboard() {
             setShowQRCodes(false);
             setShowAddTeacher(false);
             setShowTimetable(false);
+            setShowViewTimetables(false);
           }}
         >
           View Student Details
@@ -787,6 +795,7 @@ export default function AdminDashboard() {
           setShowQRCodes(false);
           setShowAddTeacher(false);
           setShowTimetable(false);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showAddClass)}>Add Class</div>
         </Link>
@@ -799,6 +808,7 @@ export default function AdminDashboard() {
           setShowQRCodes(false);
           setShowAddTeacher(false);
           setShowTimetable(false);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showFaceRegister)}>Face Register</div>
         </Link>
@@ -811,6 +821,7 @@ export default function AdminDashboard() {
           setShowQRCodes(false);
           setShowAddTeacher(false);
           setShowTimetable(false);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showAttendance)}>Attendance</div>
         </Link>
@@ -823,6 +834,7 @@ export default function AdminDashboard() {
           setShowQRCodes(true);
           setShowAddTeacher(false);
           setShowTimetable(false);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showQRCodes)}>QR Codes</div>
         </Link>
@@ -835,6 +847,7 @@ export default function AdminDashboard() {
           setShowQRCodes(false);
           setShowAddTeacher(true);
           setShowTimetable(false);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showAddTeacher)}>Add Teacher</div>
         </Link>
@@ -847,8 +860,22 @@ export default function AdminDashboard() {
           setShowQRCodes(false);
           setShowAddTeacher(false);
           setShowTimetable(true);
+          setShowViewTimetables(false);
         }}>
           <div style={sidebarItemStyle(showTimetable)}>Create Timetable</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+          setShowViewTimetables(true);
+        }}>
+          <div style={sidebarItemStyle(showViewTimetables)}>View Timetables</div>
         </Link>
       </div>
 

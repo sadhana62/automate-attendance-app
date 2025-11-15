@@ -1,0 +1,73 @@
+.leave-container {
+  text-align: center;
+  padding: 50px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.leave-container h2 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  font-weight: bold;
+  color: #12502b;
+}
+
+/* Form layout */
+.leave-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row input {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #12502b;
+  border-radius: 5px;
+}
+
+.date-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.date-input label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #12502b;
+}
+
+.leave-form textarea {
+  resize: vertical;
+  min-height: 80px;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #12502b;
+  border-radius: 5px;
+}
+
+.leave-form button {
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  background-color: #12502b;
+  color: white;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.leave-form button:hover {
+  background-color: #0e3f22;
+}
+
+
