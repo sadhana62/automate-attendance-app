@@ -11,19 +11,28 @@ export default function AttendancePage() {
   const autoIntervalRef = useRef(null);
 
   useEffect(() => {
+    const video = videoRef.current;
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+      .then((s) => {
+        window.stream = s; // Assign stream to global window object
+        if (video) {
+          video.srcObject = s;
           initQRScanner();
         }
       })
       .catch((err) => {
-        showMessage("Error accessing camera: " + err.message, "error");
+        showMessage("Error accessing camera: " + err.message, 'error');
       });
 
-    return () => stopAutoMode();
+    return () => {
+      stopAutoMode();
+      if (video?.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        window.stream = null;
+      }
+    };
     // eslint-disable-next-line
   }, []);
 

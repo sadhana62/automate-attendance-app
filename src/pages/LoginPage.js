@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -149,7 +150,7 @@ export default function LoginPage() {
         {/* Left image */}
         <div style={leftStyle}>
           <img
-            src="./assets/school.jpg"
+            src="./assets/unnamed.webp"
             alt="Login Visual"
             style={imgStyle}
           />
@@ -190,8 +191,24 @@ export default function LoginPage() {
             <input type="input" style={inputStyle} onChange={e => setUsername(e.target.value)}  required/>
 
             <label style={labelStyle}>Password:</label>
-            <input type="password" style={inputStyle} onChange={e => setPassword(e.target.value)}  required/>
-
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                style={inputStyle}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '25px' }}>
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={() => setShowPassword(!showPassword)}
+                style={{ marginRight: '10px' }}
+              />
+              <label htmlFor="showPassword" style={{ fontSize: '14px', color: 'gray' }}>Show Password</label>
+            </div>
            
 
             <button type="submit" style={buttonStyle}>

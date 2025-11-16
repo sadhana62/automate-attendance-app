@@ -51,10 +51,18 @@ const TeacherNoticeBoard = () => {
   const [notices, setNotices] = useState([]);
 
   useEffect(() => {
-    const savedNotices = localStorage.getItem('adminNotices');
-    if (savedNotices) {
-      setNotices(JSON.parse(savedNotices));
-    }
+    const fetchNotices = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/notices');
+        const data = await response.json();
+        if (data.success) {
+          setNotices(data.notices);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notices:', error);
+      }
+    };
+    fetchNotices();
   }, []);
 
   return (
@@ -70,8 +78,8 @@ const TeacherNoticeBoard = () => {
             <div key={index} style={styles.noticeItem}>
               <div style={styles.noticeTitle}>{notice.title}</div>
               <div style={styles.noticeText}>{notice.text}</div>
-              {notice.date && (
-                <div style={styles.noticeDate}>Published on: {notice.date}</div>
+              {notice.created_at_formatted && (
+                <div style={styles.noticeDate}>Published on: {notice.created_at_formatted}</div>
               )}
             </div>
           ))

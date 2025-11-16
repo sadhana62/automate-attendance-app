@@ -888,12 +888,69 @@ app.get('/api/teacher-timetable/:username', async (req, res) => {
   res.json({ success: true, timetable: sampleTimetable });
 });
 
+async function createNoticesTable() {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS notices (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        text TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("✅ 'notices' table is ready.");
+  } catch (err) {
+    console.error("❌ Error creating notices table:", err);
+  }
+}
+
+// GET all notices
+app.get('/api/notices', async (req, res) => {
+  try {
+    const [notices] = await conn.query('SELECT *, DATE_FORMAT(created_at, "%d-%b-%Y %h:%i %p") as created_at_formatted FROM notices ORDER BY created_at DESC');
+    res.json({ success: true, notices });
+  } catch (error) {
+    console.error('Error fetching notices:', error);
+    res.status(500).json({ success: false, message: 'Error fetching notices', error: error.message });
+  }
+});
+
+// POST a new notice
+app.post('/api/notice', async (req, res) => {
+  const { title, text } = req.body;
+  if (!title || !text) {
+    return res.status(400).json({ success: false, message: 'Title and text are required' });
+  }
+  try {
+    const [result] = await conn.query('INSERT INTO notices (title, text) VALUES (?, ?)', [title, text]);
+    res.json({ success: true, notice_id: result.insertId, message: 'Notice posted successfully' });
+  } catch (error) {
+    console.error('Error posting notice:', error);
+    res.status(500).json({ success: false, message: 'Error posting notice', error: error.message });
+  }
+});
+
+// DELETE a notice
+app.delete('/api/notice/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await conn.query('DELETE FROM notices WHERE id = ?', [id]);
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: 'Notice deleted successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'Notice not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting notice', error: error.message });
+  }
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
   createAdminTable();
   createTeachersTable();
-  
+  createNoticesTable();
   createTimetablesTable();
   createClassManagementTables();
 });

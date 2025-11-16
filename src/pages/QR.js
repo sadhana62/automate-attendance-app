@@ -22,33 +22,62 @@ export default function QR() {
   }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-        All Students QR Codes
-      </h1>
+    <div>
+      {/* INLINE CSS */}
+      <style>{`
+        .qr-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 24px;
+          justify-content: center;
+          padding: 20px;
+        }
 
-      <div className="flex flex-wrap gap-6 justify-center">
-        {students.map((student) => (
-          <div
-            key={student.id}
-            className="p-4 bg-white rounded-lg shadow-md text-center w-48"
-          >
-            <div className="qr mb-3">
-              <img
-                src={student.qr}
-                alt={`QR Code for ${student.name}`}
-                className="w-36 h-36 mx-auto"
-              />
+        .qr-card {
+          width: 200px;
+          background: white;
+          border-radius: 12px;
+          padding: 16px;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+          text-align: center;
+          transition: transform 0.2s ease;
+        }
+
+        .qr-card:hover {
+          transform: scale(1.05);
+        }
+
+        .qr-card img {
+          width: 150px;
+          height: 150px;
+          object-fit: contain;
+          margin: auto;
+        }
+      `}</style>
+
+      <div className="p-6 bg-gray-100 min-h-screen">
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+          All Students QR Codes
+        </h1>
+
+        <div className="qr-container">
+          {students.map((student) => (
+            <div key={student.id} className="qr-card">
+              <div className="qr mb-3">
+                <img src={student.qr} alt={`QR for ${student.name}`} />
+              </div>
+              <div className="name font-semibold text-lg">{student.name}</div>
+              <div className="id text-sm text-gray-600 mb-3">ID: {student.id}</div>
+              <a
+                href={student.qr}
+                download={`student_${student.id}.png`}
+                className="inline-block px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              >
+                Download
+              </a>
             </div>
-            <div className="name font-semibold text-lg text-gray-900">{student.name}</div>
-            <div className="id text-sm text-gray-600 mb-3">ID: {student.id}</div>
-            <a
-              className="download-btn inline-block px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-              href={student.qr}
-              download={`student_${student.id}.png`}
-            >Download</a>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 // src/pages/RegisterPage.js
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 
 function RegisterPage() {
   const videoRef = useRef(null);
@@ -22,7 +21,8 @@ function RegisterPage() {
         },
       })
       .then((stream) => {
-        video.srcObject = stream;
+        window.stream = stream; // Assign stream to global window object
+        if (video) video.srcObject = stream;
         video.onloadedmetadata = () => {
           showMessage("📹 Camera ready! Enter Student ID and click 'Capture & Register'", "loading");
           console.log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
@@ -34,8 +34,10 @@ function RegisterPage() {
       });
 
     return () => {
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach((track) => track.stop());
+      if (video?.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        window.stream = null;
       }
     };
   }, []);

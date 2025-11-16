@@ -12,6 +12,8 @@ import QR from "./QR";
 import AddTeacher from "./AddTeachers";
 import Dynamictimetable from './Dynamictimetable';
 import ViewTimetables from './ViewTimetables';
+import AdminNoticeBoard from './AdminNoticeBoard';
+import ViewTeachers from './ViewTeachers';
 
 export default function AdminDashboard() {
   const [activePage, setActivePage] = useState("add");
@@ -22,6 +24,8 @@ export default function AdminDashboard() {
   const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [showTimetable, setShowTimetable] = useState(false);
   const [showViewTimetables, setShowViewTimetables] = useState(false);
+  const [showViewTeachers, setShowViewTeachers] = useState(false);
+  const [showAdminNoticeBoard, setShowAdminNoticeBoard] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -79,9 +83,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const turnOffCamera = () => {
+    if (window.stream) {
+      window.stream.getTracks().forEach(track => track.stop());
+      window.stream = null; // Clear the stream
+      console.log("Camera turned off.");
+    } else {
+      console.log("No active camera stream found.");
+    }
+  };
+
+
   useEffect(() => {
     if (activePage === "view") {
       fetchStudents();
+    }
+    if (showViewTeachers) {
+      fetchTeachers();
     }
     if (showTimetable) {
       const fetchTimetableData = async () => {
@@ -92,7 +110,7 @@ export default function AdminDashboard() {
       fetchTimetableData();
     }
     // eslint-disable-next-line
-  }, [activePage, showTimetable]);
+  }, [activePage, showTimetable, showViewTeachers]);
   
   // Fetch options for dropdowns
   useEffect(() => {
@@ -190,7 +208,7 @@ export default function AdminDashboard() {
     placeholder: (provided) => ({ ...provided, color: "#999" }),
     menu: (provided) => ({
       ...provided,
-      zIndex: 999, // default is ~9999, make it lower
+      zIndex: 999, 
     }),
   };
 
@@ -722,6 +740,7 @@ export default function AdminDashboard() {
       );
     }
       if (showAddClass) {
+    
       return <AddClass />;
     }
 
@@ -734,6 +753,7 @@ export default function AdminDashboard() {
     }
 
     if (showQRCodes) {
+      
       return <QR />;
     }
 
@@ -748,16 +768,25 @@ export default function AdminDashboard() {
     if (showViewTimetables) {
       return <ViewTimetables />;
     }
-  };
+    if (showViewTeachers) {
+      return <ViewTeachers teachers={teachers} />;
+    }
+    if (showAdminNoticeBoard) {
+      return <AdminNoticeBoard />;
+    }
+    // Return null or a default view if no page is active
+    return null;
+  }
 
   return (
-   <div style={containerStyle}>
+    <div style={containerStyle}>
       {/* Sidebar */}
       <div style={sidebarStyle}>
         <h2 style={{ marginBottom: "30px", fontSize: "20px" }}>Admin Panel</h2>
         <div
           style={sidebarItemStyle(activePage === "add")}
           onClick={() => {
+            turnOffCamera();
             setActivePage("add");
             setEditingIndex(null);
             setShowAddClass(false);
@@ -767,6 +796,9 @@ export default function AdminDashboard() {
             setShowAddTeacher(false);
             setShowTimetable(false);
             setShowViewTimetables(false);
+            setShowViewTeachers(false);
+            setShowAdminNoticeBoard(false);
+            setEditingIndex(null); // Reset editing state
           }}
         >
           Add Student
@@ -774,6 +806,7 @@ export default function AdminDashboard() {
         <div
           style={sidebarItemStyle(activePage === "view")}
           onClick={() => {
+            turnOffCamera();
             setActivePage("view");
             setShowAddClass(false);
             setShowFaceRegister(false);
@@ -782,12 +815,15 @@ export default function AdminDashboard() {
             setShowAddTeacher(false);
             setShowTimetable(false);
             setShowViewTimetables(false);
+            setShowViewTeachers(false);
+            setShowAdminNoticeBoard(false);
           }}
         >
           View Student Details
         </div>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
+          turnOffCamera();
           setActivePage("");
           setShowAddClass(true);
           setShowFaceRegister(false);
@@ -796,37 +832,50 @@ export default function AdminDashboard() {
           setShowAddTeacher(false);
           setShowTimetable(false);
           setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
         }}>
           <div style={sidebarItemStyle(showAddClass)}>Add Class</div>
         </Link>
-        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
-          e.preventDefault();
-          setActivePage("");
-          setShowAddClass(false);
-          setShowFaceRegister(true);
-          setShowAttendance(false);
-          setShowQRCodes(false);
-          setShowAddTeacher(false);
-          setShowTimetable(false);
-          setShowViewTimetables(false);
-        }}>
+        <div
+          style={{ textDecoration: "none" }}
+          onClick={() => {
+            turnOffCamera();
+            setActivePage("");
+            setShowAddClass(false);
+            setShowFaceRegister(true);
+            setShowAttendance(false);
+            setShowQRCodes(false);
+            setShowAddTeacher(false);
+            setShowTimetable(false);
+            setShowViewTimetables(false);
+            setShowViewTeachers(false);
+            setShowAdminNoticeBoard(false);
+          }}
+        >
           <div style={sidebarItemStyle(showFaceRegister)}>Face Register</div>
-        </Link>
-        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
-          e.preventDefault();
-          setActivePage("");
-          setShowAddClass(false);
-          setShowFaceRegister(false);
-          setShowAttendance(true);
-          setShowQRCodes(false);
-          setShowAddTeacher(false);
-          setShowTimetable(false);
-          setShowViewTimetables(false);
-        }}>
+        </div>
+        <div
+          style={{ textDecoration: "none" }}
+          onClick={() => {
+            turnOffCamera();
+            setActivePage("");
+            setShowAddClass(false);
+            setShowFaceRegister(false);
+            setShowAttendance(true);
+            setShowQRCodes(false);
+            setShowAddTeacher(false);
+            setShowTimetable(false);
+            setShowViewTimetables(false);
+            setShowViewTeachers(false);
+            setShowAdminNoticeBoard(false);
+          }}
+        >
           <div style={sidebarItemStyle(showAttendance)}>Attendance</div>
-        </Link>
+        </div>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
+          turnOffCamera();
           setActivePage("");
           setShowAddClass(false);
           setShowFaceRegister(false);
@@ -835,11 +884,14 @@ export default function AdminDashboard() {
           setShowAddTeacher(false);
           setShowTimetable(false);
           setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
         }}>
           <div style={sidebarItemStyle(showQRCodes)}>QR Codes</div>
         </Link>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
+          turnOffCamera();
           setActivePage("");
           setShowAddClass(false);
           setShowFaceRegister(false);
@@ -848,11 +900,30 @@ export default function AdminDashboard() {
           setShowAddTeacher(true);
           setShowTimetable(false);
           setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
         }}>
           <div style={sidebarItemStyle(showAddTeacher)}>Add Teacher</div>
         </Link>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
+          turnOffCamera();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+          setShowViewTimetables(false);
+          setShowViewTeachers(true);
+          setShowAdminNoticeBoard(false);
+        }}>
+          <div style={sidebarItemStyle(showViewTeachers)}>View Teachers</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          turnOffCamera();
           setActivePage("");
           setShowAddClass(false);
           setShowFaceRegister(false);
@@ -861,11 +932,14 @@ export default function AdminDashboard() {
           setShowAddTeacher(false);
           setShowTimetable(true);
           setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
         }}>
           <div style={sidebarItemStyle(showTimetable)}>Create Timetable</div>
         </Link>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
+          turnOffCamera();
           setActivePage("");
           setShowAddClass(false);
           setShowFaceRegister(false);
@@ -874,8 +948,26 @@ export default function AdminDashboard() {
           setShowAddTeacher(false);
           setShowTimetable(false);
           setShowViewTimetables(true);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
         }}>
           <div style={sidebarItemStyle(showViewTimetables)}>View Timetables</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          turnOffCamera();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+          setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(true);
+        }}>
+          <div style={sidebarItemStyle(showAdminNoticeBoard)}>Notice Board</div>
         </Link>
       </div>
 

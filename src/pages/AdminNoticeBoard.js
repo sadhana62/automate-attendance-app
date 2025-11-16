@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const styles = {
   container: {
@@ -74,6 +74,21 @@ const styles = {
     fontSize: '14px',
     marginTop: '5px',
   },
+  noticeDate: {
+    fontSize: '12px',
+    color: '#666',
+    marginTop: '3px',
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '5px 10px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    float: 'right',
+  },
 };
 
 const AdminNoticeBoard = () => {
@@ -81,14 +96,50 @@ const AdminNoticeBoard = () => {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
 
-  const handleSubmit = (e) => {
+  const fetchNotices = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/notices');
+      const data = await response.json();
+      if (data.success) {
+        setNotices(data.notices);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notices:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !text) return;
 
-    const newNotice = { title, text };
-    setNotices([newNotice, ...notices]);
-    setTitle('');
-    setText('');
+    try {
+      const response = await fetch('http://localhost:3000/api/notice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, text }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchNotices(); // Refresh notices
+        setTitle('');
+        setText('');
+      } else {
+        alert(data.message || 'Failed to post notice.');
+      }
+    } catch (error) {
+      alert('An error occurred while posting the notice.');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this notice?')) {
+      await fetch(`http://localhost:3000/api/notice/${id}`, { method: 'DELETE' });
+      fetchNotices(); // Refresh notices
+    }
   };
 
   return (
@@ -130,8 +181,12 @@ const AdminNoticeBoard = () => {
         ) : (
           notices.map((notice, index) => (
             <div key={index} style={styles.noticeItem}>
+              <button onClick={() => handleDelete(notice.id)} style={styles.deleteButton}>Delete</button>
               <div style={styles.noticeTitle}>{notice.title}</div>
               <div style={styles.noticeText}>{notice.text}</div>
+              <div style={styles.noticeDate}>
+                Published on: {notice.created_at_formatted}
+              </div>
             </div>
           ))
         )}

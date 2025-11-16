@@ -103,9 +103,9 @@
 
    function extractStudentId(qrContent) {
   try {
-    const data = JSON.parse(qrContent); // parse QR JSON
+    const data = JSON.parse(qrContent); 
     if (data.type === "student" && data.id) {
-      return data.id; // we only need the ID
+      return data.id; 
     }
   } catch (e) {
     console.warn("QR is not valid JSON:", qrContent);
@@ -118,7 +118,7 @@
       messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
     }
 
-    // NEW: Start verification when QR detected
+    
     function startAttendanceVerification() {
       if (!autoMode) {
         verifyAttendance();
