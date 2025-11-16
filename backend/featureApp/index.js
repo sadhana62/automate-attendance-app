@@ -591,6 +591,64 @@ app.post('/verify-attendance', upload.single('image'), async (req, res) => {
   }
 });
 
+// GET all holidays
+app.get('/api/holidays', async (req, res) => {
+  try {
+    const [rows] = await conn.query('SELECT id, DATE_FORMAT(date, "%Y-%m-%d") as date, name FROM holidays ORDER BY date');
+    res.json({ success: true, holidays: rows });
+  } catch (err) {
+    console.error('Error fetching holidays:', err);
+    res.status(500).json({ success: false, message: 'Error fetching holidays', error: err.message });
+  }
+});
+
+// POST holidays - accepts { holidays: [{ date: 'YYYY-MM-DD', name: '...' }, ...] }
+app.post('/api/holidays', express.json(), async (req, res) => {
+  const { holidays } = req.body;
+  if (!holidays || !Array.isArray(holidays)) {
+    return res.status(400).json({ success: false, message: 'holidays array is required' });
+  }
+
+  let connection;
+  try {
+    connection = await conn.getConnection();
+    await connection.beginTransaction();
+
+    const insertQuery = 'INSERT INTO holidays (`date`, `name`) VALUES ? ON DUPLICATE KEY UPDATE name = VALUES(name)';
+    const values = [];
+
+    for (const h of holidays) {
+      if (!h || !h.date || !h.name) continue;
+      let d = h.date;
+      // Normalize date to YYYY-MM-DD if possible
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) continue;
+        const yyyy = dt.getFullYear();
+        const mm = String(dt.getMonth() + 1).padStart(2, '0');
+        const dd = String(dt.getDate()).padStart(2, '0');
+        d = `${yyyy}-${mm}-${dd}`;
+      }
+      values.push([d, h.name]);
+    }
+
+    if (values.length === 0) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'No valid holiday entries provided' });
+    }
+
+    await connection.query(insertQuery, [values]);
+    await connection.commit();
+    res.json({ success: true, message: 'Holidays saved', count: values.length });
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error('Error saving holidays:', err);
+    res.status(500).json({ success: false, message: 'Error saving holidays', error: err.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 async function createClassManagementTables() {
   try {
     await conn.query(`
@@ -736,6 +794,22 @@ async function createTimetablesTable() {
     console.log("✅ 'timetables' table is ready.");
   } catch (err) {
     console.error("❌ Error creating timetables table:", err);
+  }
+}
+
+async function createHolidaysTable() {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS holidays (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        date DATE NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("✅ 'holidays' table is ready.");
+  } catch (err) {
+    console.error("❌ Error creating holidays table:", err);
   }
 }
 
@@ -953,4 +1027,5 @@ app.listen(port, () => {
   createNoticesTable();
   createTimetablesTable();
   createClassManagementTables();
+  createHolidaysTable();
 });

@@ -14,6 +14,7 @@ import Dynamictimetable from './Dynamictimetable';
 import ViewTimetables from './ViewTimetables';
 import AdminNoticeBoard from './AdminNoticeBoard';
 import ViewTeachers from './ViewTeachers';
+import AdminHolidays from './AdminHolidays';
 
 export default function AdminDashboard() {
   const [activePage, setActivePage] = useState("add");
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
   const [showViewTimetables, setShowViewTimetables] = useState(false);
   const [showViewTeachers, setShowViewTeachers] = useState(false);
   const [showAdminNoticeBoard, setShowAdminNoticeBoard] = useState(false);
+  const [showAdminHolidays, setShowAdminHolidays] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -800,6 +802,9 @@ export default function AdminDashboard() {
     if (showViewTeachers) {
       return <ViewTeachers teachers={teachers} />;
     }
+    if (showAdminHolidays) {
+      return <AdminHolidays />;
+    }
     if (showAdminNoticeBoard) {
       return <AdminNoticeBoard />;
     }
@@ -827,7 +832,8 @@ export default function AdminDashboard() {
             setShowViewTimetables(false);
             setShowViewTeachers(false);
             setShowAdminNoticeBoard(false);
-            setEditingIndex(null); // Reset editing state
+              setShowAdminHolidays(false);
+              setEditingIndex(null); // Reset editing state
           }}
         >
           Add Student
@@ -845,7 +851,8 @@ export default function AdminDashboard() {
             setShowTimetable(false);
             setShowViewTimetables(false);
             setShowViewTeachers(false);
-            setShowAdminNoticeBoard(false);
+              setShowAdminNoticeBoard(false);
+              setShowAdminHolidays(false);
           }}
         >
           View Student Details
@@ -863,6 +870,7 @@ export default function AdminDashboard() {
           setShowViewTimetables(false);
           setShowViewTeachers(false);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showAddClass)}>Add Class</div>
         </Link>
@@ -880,6 +888,7 @@ export default function AdminDashboard() {
             setShowViewTimetables(false);
             setShowViewTeachers(false);
             setShowAdminNoticeBoard(false);
+            setShowAdminHolidays(false);
           }}
         >
           <div style={sidebarItemStyle(showFaceRegister)}>Face Register</div>
@@ -898,6 +907,7 @@ export default function AdminDashboard() {
             setShowViewTimetables(false);
             setShowViewTeachers(false);
             setShowAdminNoticeBoard(false);
+            setShowAdminHolidays(false);
           }}
         >
           <div style={sidebarItemStyle(showAttendance)}>Attendance</div>
@@ -915,6 +925,7 @@ export default function AdminDashboard() {
           setShowViewTimetables(false);
           setShowViewTeachers(false);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showQRCodes)}>QR Codes</div>
         </Link>
@@ -931,6 +942,7 @@ export default function AdminDashboard() {
           setShowViewTimetables(false);
           setShowViewTeachers(false);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showAddTeacher)}>Add Teacher</div>
         </Link>
@@ -947,6 +959,7 @@ export default function AdminDashboard() {
           setShowViewTimetables(false);
           setShowViewTeachers(true);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showViewTeachers)}>View Teachers</div>
         </Link>
@@ -963,6 +976,7 @@ export default function AdminDashboard() {
           setShowViewTimetables(false);
           setShowViewTeachers(false);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showTimetable)}>Create Timetable</div>
         </Link>
@@ -979,8 +993,26 @@ export default function AdminDashboard() {
           setShowViewTimetables(true);
           setShowViewTeachers(false);
           setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
         }}>
           <div style={sidebarItemStyle(showViewTimetables)}>View Timetables</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          turnOffCamera();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+          setShowViewTimetables(false);
+          setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(true);
+        }}>
+          <div style={sidebarItemStyle(showAdminHolidays)}>Holidays</div>
         </Link>
         <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
           e.preventDefault();
