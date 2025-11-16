@@ -29,6 +29,7 @@ export default function AdminDashboard() {
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [filterClass, setFilterClass] = useState(null); // selected class to filter students
 
   // State for dynamic dropdown options
   const [classOptions, setClassOptions] = useState([]);
@@ -231,6 +232,11 @@ export default function AdminDashboard() {
         ? []
         : "",
     }));
+  };
+
+  const handleFilterChange = (selectedOption) => {
+    // selectedOption may be null (cleared) or an option object
+    setFilterClass(selectedOption && selectedOption.value ? selectedOption.value : null);
   };
 
   const handleSubmit = async (e) => {
@@ -661,8 +667,12 @@ export default function AdminDashboard() {
     }
 
     if (activePage === "view") {
-      // Group students by class
-      const studentsByClass = students.reduce((acc, student) => {
+      // Apply class filter (if any) then group students by class
+      const filteredStudents = filterClass
+        ? students.filter((student) => (student.class || "") === filterClass)
+        : students;
+
+      const studentsByClass = filteredStudents.reduce((acc, student) => {
         const studentClass = student.class || "Unassigned";
         if (!acc[studentClass]) {
           acc[studentClass] = [];
@@ -681,8 +691,27 @@ export default function AdminDashboard() {
       return (
         <div style={cardStyle}>
           <h2 style={headingStyle}>View Student Details</h2>
-          {students.length === 0 ? (
-            <p>No students registered yet.</p>
+          <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ minWidth: "250px" }}>
+              <Select
+                name="filterClass"
+                options={[{ value: "", label: "All Classes" }, ...classOptions]}
+                value={
+                  filterClass
+                    ? classOptions.find((o) => o.value === filterClass)
+                    : { value: "", label: "All Classes" }
+                }
+                onChange={handleFilterChange}
+                styles={customSelectStyles}
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                placeholder="Filter by Class"
+              />
+            </div>
+            <button onClick={() => setFilterClass(null)} style={{ ...editButtonStyle, backgroundColor: "#6c757d" }}>Clear</button>
+          </div>
+          {filteredStudents.length === 0 ? (
+            <p>No students match the selected class.</p>
           ) : (
             sortedClasses.map((className) => (
               <div key={className} style={{ marginBottom: "40px" }}>
