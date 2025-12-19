@@ -66,8 +66,14 @@ export default function QR() {
               <div className="qr mb-3">
                 <img src={student.qr} alt={`QR for ${student.name}`} />
               </div>
-              <div className="name font-semibold text-lg">{student.name}</div>
-              <div className="id text-sm text-gray-600 mb-3">ID: {student.id}</div>
+              <div className="name font-semibold text-lg">
+                {student.id === 29
+                  ? student.name.trim().split(/\s+/)[0]
+                  : student.name}
+              </div>
+              <div className="id text-sm text-gray-600 mb-3">
+                ID: {student.id}
+              </div>
               <a
                 href={student.qr}
                 download={`student_${student.id}.png`}

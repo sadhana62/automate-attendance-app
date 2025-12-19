@@ -591,6 +591,80 @@ app.post('/verify-attendance', upload.single('image'), async (req, res) => {
   }
 });
 
+// --- Seat assignment for attended students ---
+async function createSeatAssignmentsTable() {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS seat_assignments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stu_id INT NOT NULL,
+        seat_number INT NOT NULL,
+        date_assigned DATE NOT NULL,
+        UNIQUE KEY unique_seat_per_day (seat_number, date_assigned),
+        UNIQUE KEY unique_student_per_day (stu_id, date_assigned)
+      )
+    `);
+    console.log("✅ 'seat_assignments' table is ready.");
+  } catch (err) {
+    console.error("❌ Error creating seat_assignments table:", err);
+  }
+}
+
+// Assign a unique random seat (1..30) to a student for today
+app.post('/assign-seat', express.json(), async (req, res) => {
+  const { studentId } = req.body;
+  if (!studentId) return res.status(400).json({ success: false, message: 'studentId required' });
+
+  let connection;
+  try {
+    connection = await conn.getConnection();
+
+    // ensure table exists
+    await createSeatAssignmentsTable();
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    // If student already has a seat today, return it
+    const [existing] = await connection.query('SELECT seat_number FROM seat_assignments WHERE stu_id = ? AND date_assigned = ?', [studentId, todayStr]);
+    if (existing.length > 0) {
+      return res.json({ success: true, seat: existing[0].seat_number, message: 'Seat already assigned' });
+    }
+
+    // Get assigned seats for today
+    const [assignedRows] = await connection.query('SELECT seat_number FROM seat_assignments WHERE date_assigned = ?', [todayStr]);
+    const assigned = new Set(assignedRows.map(r => r.seat_number));
+
+    // Build available seats 1..30
+    const capacity = 30;
+    const available = [];
+    for (let i = 1; i <= capacity; i++) {
+      if (!assigned.has(i)) available.push(i);
+    }
+
+    if (available.length === 0) {
+      return res.status(400).json({ success: false, message: 'No seats available today' });
+    }
+
+    // pick random available seat
+    const choice = available[Math.floor(Math.random() * available.length)];
+
+    // insert assignment
+    await connection.query('INSERT INTO seat_assignments (stu_id, seat_number, date_assigned) VALUES (?, ?, ?)', [studentId, choice, todayStr]);
+
+    res.json({ success: true, seat: choice, message: 'Seat assigned' });
+
+  } catch (err) {
+    console.error('Error assigning seat:', err);
+    res.status(500).json({ success: false, message: 'Error assigning seat', error: err.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 // GET all holidays
 app.get('/api/holidays', async (req, res) => {
   try {
@@ -978,6 +1052,106 @@ async function createNoticesTable() {
   }
 }
 
+async function createSyllabusTable() {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS syllabi (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        class_id INT NOT NULL,
+        section_name VARCHAR(50),
+        filename VARCHAR(255) NOT NULL,
+        original_name VARCHAR(255) NOT NULL,
+        file_path VARCHAR(512) NOT NULL,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("✅ 'syllabi' table is ready.");
+  } catch (err) {
+    console.error("❌ Error creating syllabi table:", err);
+  }
+}
+
+// Upload syllabus endpoint
+app.post('/api/upload-syllabus', upload.single('syllabus'), async (req, res) => {
+  try {
+    const { class_id, section_name } = req.body;
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!class_id) return res.status(400).json({ success: false, message: 'class_id is required' });
+
+    const filename = req.file.filename;
+    const original_name = req.file.originalname;
+    // store a web-friendly relative path in DB (so downloads work cross-platform)
+    const file_path = `/uploads/${filename}`;
+
+    const [result] = await conn.query('INSERT INTO syllabi (class_id, section_name, filename, original_name, file_path) VALUES (?, ?, ?, ?, ?)', [class_id, section_name || null, filename, original_name, file_path]);
+
+    // return the created record info including a URL the frontend can use directly
+    const syllabus = {
+      id: result.insertId,
+      class_id: Number(class_id),
+      section_name: section_name || null,
+      filename,
+      original_name,
+      file_path,
+      url: file_path,
+      uploaded_at: new Date().toISOString()
+    };
+
+    res.json({ success: true, message: 'Syllabus uploaded successfully', syllabus });
+  } catch (err) {
+    console.error('Error uploading syllabus:', err);
+    res.status(500).json({ success: false, message: 'Error uploading syllabus', error: err.message });
+  }
+});
+
+// Get syllabi list (optionally filter by class_id)
+app.get('/api/syllabi', async (req, res) => {
+  try {
+    const { class_id } = req.query;
+    let q = 'SELECT id, class_id, section_name, original_name, filename, file_path, DATE_FORMAT(uploaded_at, "%Y-%m-%d %H:%i:%s") as uploaded_at FROM syllabi';
+    const params = [];
+    if (class_id) {
+      q += ' WHERE class_id = ?';
+      params.push(class_id);
+    }
+    q += ' ORDER BY uploaded_at DESC';
+    const [rows] = await conn.query(q, params);
+    res.json({ success: true, syllabi: rows });
+  } catch (err) {
+    console.error('Error fetching syllabi:', err);
+    res.status(500).json({ success: false, message: 'Error fetching syllabi', error: err.message });
+  }
+});
+
+// Get latest syllabus for a class
+app.get('/api/syllabus/:class_id', async (req, res) => {
+  try {
+    const { class_id } = req.params;
+    if (!class_id) return res.status(400).json({ success: false, message: 'class_id required' });
+
+    const [rows] = await conn.query(
+      `SELECT id, class_id, section_name, original_name, filename, file_path, DATE_FORMAT(uploaded_at, "%Y-%m-%d %H:%i:%s") as uploaded_at
+       FROM syllabi WHERE class_id = ? ORDER BY uploaded_at DESC LIMIT 1`,
+      [class_id]
+    );
+
+    if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'No syllabus found for this class' });
+
+    const s = rows[0];
+    // Always construct a web-relative URL from the stored filename to avoid returning
+    // local filesystem paths (which don't work in the browser).
+    const url = `/uploads/${s.filename}`;
+
+    res.json({ success: true, syllabus: { ...s, url } });
+  } catch (err) {
+    console.error('Error fetching syllabus for class:', err);
+    res.status(500).json({ success: false, message: 'Error fetching syllabus', error: err.message });
+  }
+});
+
+// Serve uploaded files statically under /uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // GET all notices
 app.get('/api/notices', async (req, res) => {
   try {
@@ -1026,6 +1200,7 @@ app.listen(port, () => {
   createTeachersTable();
   createNoticesTable();
   createTimetablesTable();
+  createSyllabusTable();
   createClassManagementTables();
   createHolidaysTable();
 });

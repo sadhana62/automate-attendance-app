@@ -6,6 +6,7 @@ export default function AttendancePage() {
   const canvasRef = useRef(null);
   const [studentId, setStudentId] = useState("");
   const [message, setMessage] = useState(null);
+  const [seatNumber, setSeatNumber] = useState(null);
   const [autoMode, setAutoMode] = useState(false);
   const [verificationCount, setVerificationCount] = useState(0);
   const autoIntervalRef = useRef(null);
@@ -92,7 +93,7 @@ export default function AttendancePage() {
 
   const verifyAttendance = async () => {
     if (!studentId) {
-      showMessage("Please enter a Student ID or show a QR code", "error");
+      // showMessage("Please enter a Student ID or show a QR code", "error");
       return;
     }
 
@@ -116,15 +117,36 @@ export default function AttendancePage() {
 
           if (data.success) {
             showMessage(`✅ ${data.message}`, "success");
+            // After successful attendance verification, request a seat assignment
+            try {
+              const seatRes = await fetch("http://localhost:3000/assign-seat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId })
+              });
+              const seatData = await seatRes.json();
+              if (seatData.success) {
+                setSeatNumber(seatData.seat);
+                showMessage(`✅ ${data.message} — Seat: ${seatData.seat}`, "success");
+              } else {
+                // Could not assign a seat; still show attendance success
+                setSeatNumber(null);
+                showMessage(`✅ ${data.message} — ${seatData.message || 'Seat not assigned'}`, "success");
+              }
+            } catch (err) {
+              console.error('Error assigning seat:', err);
+              showMessage(`✅ ${data.message} — seat assignment failed`, "success");
+            }
+
             setVerificationCount((prev) => {
               if (prev + 1 >= 5) stopAutoMode();
               return prev + 1;
             });
           } else {
-            showMessage(`❌ ${data.message}`, "error");
+            showMessage(` ${data.message}`, "error");
           }
         } catch (error) {
-          showMessage("❌ Verification failed: " + error.message, "error");
+          showMessage(" Verification failed: " + error.message, "error");
         }
       }
     }, "image/jpeg", 0.8);
@@ -155,14 +177,7 @@ export default function AttendancePage() {
     color: "#1b263b",
     letterSpacing: "1px",
   };
-  const linkStyle = {
-    color: "green",
-    textDecoration: "none",
-    fontWeight: 500,
-    fontSize: "1rem",
-    marginBottom: "1.5rem",
-    display: "inline-block",
-  };
+ 
   const labelStyle = {
     fontWeight: 600,
     marginBottom: 6,
@@ -290,6 +305,11 @@ export default function AttendancePage() {
             }}
           >
             {message.text}
+          </div>
+        )}
+        {seatNumber && (
+          <div style={{ marginTop: 12, fontWeight: 700, color: '#1b263b' }}>
+            Assigned Seat: {seatNumber}
           </div>
         )}
       </div>

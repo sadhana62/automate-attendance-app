@@ -1,0 +1,69 @@
+.holidays-page {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: linear-gradient(180deg, #f6fbf7 0%, #ffffff 100%);
+  min-height: calc(100vh - 80px);
+}
+
+.holidays-card {
+  width: 100%;
+  max-width: 900px;
+  background: white;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 8px 30px rgba(14,63,34,0.08);
+  border: 1px solid rgba(20,71,43,0.06);
+}
+
+.holidays-heading {
+  margin: 0 0 16px 0;
+  font-size: 26px;
+  color: #0f5a2f;
+}
+
+.no-holidays {
+  color: #4c5b53;
+  font-style: italic;
+}
+
+.holidays-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.holiday-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  transition: background 150ms ease, transform 120ms ease;
+  border: 1px solid #eef7ee;
+  margin-bottom: 10px;
+}
+.holiday-item:hover { background: #fbfff9; transform: translateY(-3px); }
+
+.holiday-date {
+  min-width: 110px;
+  padding: 8px 10px;
+  background: #eaf9ee;
+  color: #0f5a2f;
+  font-weight: 700;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.holiday-name {
+  color: #27483a;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .holiday-item { gap: 12px; padding: 10px; }
+  .holiday-date { min-width: 90px; font-size: 13px; }
+  .holiday-name { font-size: 14px; }
+}

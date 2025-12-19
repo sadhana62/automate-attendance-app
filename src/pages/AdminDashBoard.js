@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -28,6 +28,10 @@ export default function AdminDashboard() {
   const [showViewTeachers, setShowViewTeachers] = useState(false);
   const [showAdminNoticeBoard, setShowAdminNoticeBoard] = useState(false);
   const [showAdminHolidays, setShowAdminHolidays] = useState(false);
+  const [showSyllabusUpload, setShowSyllabusUpload] = useState(false);
+  const [syllabusFile, setSyllabusFile] = useState(null);
+  const [syllabiList, setSyllabiList] = useState([]);
+  const [selectedSyllabusClass, setSelectedSyllabusClass] = useState('');
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -61,6 +65,18 @@ export default function AdminDashboard() {
     password: "",
     interest: [], // 👈 NEW field
   });
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Turn off camera if active and reset UI state
+    turnOffCamera();
+    // Clear any local auth state if present
+    try {
+      localStorage.removeItem('isAdminLoggedIn');
+    } catch (e) {}
+    // Navigate back to login page
+    navigate('/');
+  };
 
   const fetchStudents = async () => {
     try {
@@ -132,6 +148,14 @@ export default function AdminDashboard() {
     };
     fetchOptions();
   }, []);
+
+  // Fetch syllabi list when class options change so dropdowns have values
+  useEffect(() => {
+    if (classOptions && classOptions.length > 0) {
+      // initial fetch of syllabi
+      fetch('/api/syllabi').then(r => r.json()).then(d => { if (d.success) setSyllabiList(d.syllabi || []) }).catch(()=>{});
+    }
+  }, [classOptions]);
 
   // Options
   useEffect(() => {
@@ -802,6 +826,40 @@ export default function AdminDashboard() {
     if (showViewTeachers) {
       return <ViewTeachers teachers={teachers} />;
     }
+    if (showSyllabusUpload) {
+      return (
+        <div style={cardStyle}>
+          <h2 style={headingStyle}>Upload Syllabus (PDF)</h2>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+            <select value={selectedSyllabusClass} onChange={e => setSelectedSyllabusClass(e.target.value)} style={{ padding: '8px 10px', borderRadius: 6 }}>
+              <option value="">Select Class</option>
+              {classOptions.map(c => <option key={c.id || c.value} value={c.id || c.value}>{c.name || c.label || c.value}</option>)}
+            </select>
+            <input type="file" accept="application/pdf" onChange={e => setSyllabusFile(e.target.files[0])} />
+            <button onClick={async () => {
+              if (!selectedSyllabusClass) return alert('Select class');
+              if (!syllabusFile) return alert('Choose a PDF to upload');
+              const fd = new FormData(); fd.append('syllabus', syllabusFile); fd.append('class_id', selectedSyllabusClass);
+              try { const res = await fetch('http://localhost:3000/api/upload-syllabus', { method: 'POST', body: fd }); const data = await res.json(); if (data.success) { alert('Uploaded'); setSyllabusFile(null); setSelectedSyllabusClass(''); fetch('/api/syllabi').then(r=>r.json()).then(d=>{ if(d.success) setSyllabiList(d.syllabi || []) }); } else alert(data.message||'Upload failed'); } catch (err) { console.error(err); alert('Upload error'); }
+            }} style={{ padding: '8px 12px', background: '#28a745', color: 'white', borderRadius: 6 }}>Upload</button>
+          </div>
+
+          <h3 style={{ marginTop: 14 }}>Uploaded Syllabi</h3>
+          <div>
+            {syllabiList.length === 0 ? <p>No syllabi uploaded yet.</p> : (
+              <ul>
+                {syllabiList.map(s => (
+                  <li key={s.id} style={{ marginBottom: 8 }}>
+                    <strong>{s.original_name}</strong> — Class {s.class_id} {s.section_name ? `(${s.section_name})` : ''} — {s.uploaded_at}
+                    {' '}<a href={s.file_path || `/uploads/${s.filename}`} target="_blank" rel="noreferrer">Download</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      );
+    }
     if (showAdminHolidays) {
       return <AdminHolidays />;
     }
@@ -1026,10 +1084,36 @@ export default function AdminDashboard() {
           setShowTimetable(false);
           setShowViewTimetables(false);
           setShowViewTeachers(false);
+          setShowAdminNoticeBoard(false);
+          setShowAdminHolidays(false);
+          setShowSyllabusUpload(true);
+        }}>
+          <div style={sidebarItemStyle(showSyllabusUpload)}>Upload Syllabus</div>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none" }} onClick={(e) => {
+          e.preventDefault();
+          turnOffCamera();
+          setActivePage("");
+          setShowAddClass(false);
+          setShowFaceRegister(false);
+          setShowAttendance(false);
+          setShowQRCodes(false);
+          setShowAddTeacher(false);
+          setShowTimetable(false);
+          setShowViewTimetables(false);
+          setShowViewTeachers(false);
           setShowAdminNoticeBoard(true);
         }}>
           <div style={sidebarItemStyle(showAdminNoticeBoard)}>Notice Board</div>
         </Link>
+        <div
+          onClick={() => {
+            // Logout action
+            handleLogout();
+          }}
+        >
+          <div style={{ ...sidebarItemStyle(false), backgroundColor: '#d9534f', color: 'white' }}>Logout</div>
+        </div>
       </div>
 
      

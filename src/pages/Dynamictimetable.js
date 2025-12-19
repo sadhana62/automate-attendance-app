@@ -28,6 +28,7 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
   useEffect(() => {
     if (selectedClassId) {
       const relevantSections = sections.filter(s => s.class_id === parseInt(selectedClassId, 10));
+      console.log("relevantSections",relevantSections);
       setFilteredSections(relevantSections);
       setSelectedSection(relevantSections[0]?.name || '');
     } else {
@@ -42,6 +43,45 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
     const newTimetable = [...timetable];
     newTimetable[timeIdx][dayIdx][field] = value;
     setTimetable(newTimetable);
+  };
+
+  // Return subject list for a given teacher name.
+  // `teachers` prop may be an array of strings or objects with a `subject` field (stringified JSON or array).
+  const getSubjectsForTeacher = (teacherName) => {
+    if (!teacherName) return subjects;
+    // Try to find teacher as object
+    const teacherObj = teachers.find((t) => {
+      if (!t) return false;
+      if (typeof t === 'string') return t === teacherName;
+      // try common keys
+      return t.name === teacherName || t.username === teacherName || t.id === teacherName;
+    });
+
+    if (!teacherObj) return subjects;
+
+    if (typeof teacherObj === 'string') return subjects;
+
+    // teacherObj is object; extract subject(s)
+    let taught = teacherObj.subject || teacherObj.subjects || teacherObj.classes || null;
+    if (!taught) return subjects;
+
+    try {
+      if (typeof taught === 'string') {
+        // may be JSON string or comma-separated
+        try {
+          const parsed = JSON.parse(taught);
+          if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+          // not JSON - split by comma
+          return taught.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+      if (Array.isArray(taught)) return taught;
+    } catch (e) {
+      return subjects;
+    }
+
+    return subjects;
   };
 
   const handleGenerateTemplate = async () => {
@@ -143,7 +183,7 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
                         style={styles.innerSelect}
                       >
                         <option value="">Subject</option>
-                        {subjects.map((s) => (
+                        {getSubjectsForTeacher(timetable[timeIdx][dayIdx].teacher).map((s) => (
                           <option key={s} value={s}>
                             {s}
                           </option>
@@ -157,11 +197,11 @@ const Timetable = ({ classes = [], sections = [], subjects = [], teachers = [] }
                         style={styles.innerSelect}
                       >
                         <option value="">Teacher</option>
-                        {teachers.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
+                        {teachers.map((t) => {
+                          const label = typeof t === 'string' ? t : (t.name || t.username || t.id || '');
+                          const val = typeof t === 'string' ? t : (t.name || t.username || t.id || '');
+                          return <option key={val} value={val}>{label}</option>;
+                        })}
                       </select>
                     </td>
                   ))}

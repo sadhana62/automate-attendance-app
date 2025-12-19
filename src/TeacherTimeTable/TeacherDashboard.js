@@ -4,6 +4,8 @@ import TeacherTimetable from "./TeacherTimetable";
 import Leave from "./Leave";
 import "./TeacherDashboard.css";
 import TeacherNoticeBoard from "../pages/TeacherNoticeBoard";
+import TeacherHoliday from "./TeacherHoliday";
+import SyllabusBySubject from "./SyllabusBySubject";
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState("attendance");
@@ -21,28 +23,12 @@ const TeacherDashboard = () => {
         return <Attendance />;
       case "timetable":
         return <TeacherTimetable />;
-      case "leave":
-        return <Leave />;
+      // case "leave":
+      //   return <Leave />;
       case "holiday":
-        return (
-          <div className="content-box">
-            <h2>Holiday</h2>
-            <div className="holiday-box">
-              <span className={isHoliday ? "yes" : "no"}>
-                {isHoliday ? "Yes 🎉 Today is a Holiday" : "No 🏫 Regular Working Day"}
-              </span>
-            </div>
-          </div>
-        );
+        return <TeacherHoliday/>
       case "syllabus":
-        return (
-          <div className="content-box">
-            <h2>Syllabus</h2>
-            <div className="placeholder-box">
-              Syllabus details will appear here.
-            </div>
-          </div>
-        );
+        return <SyllabusBySubject/>
       case "notice":
         return <TeacherNoticeBoard />;
       default:

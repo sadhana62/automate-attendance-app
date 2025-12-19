@@ -21,6 +21,14 @@ export default function LoginPage() {
       if (data.success) {
         // Store user info for other parts of the app
         localStorage.setItem('user', JSON.stringify({ username, role: data.role }));
+        // If teacher, also store username separately for teacher pages
+        if (data.role === 'teacher') {
+          try { localStorage.setItem('username', username); } catch (e) {}
+        }
+        // If admin, mark admin logged in (used by admin dashboard)
+        if (data.role === 'admin') {
+          try { localStorage.setItem('isAdminLoggedIn', 'true'); } catch (e) {}
+        }
 
         if (data.role === 'admin') {
           navigate("/admindashBoard");

@@ -6,9 +6,24 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+### Running the Backend
+
+To run the backend services, you will need two separate terminals.
+
+1.  In the first terminal, start the Node.js server:
+    ```sh
+    cd backend/featureApp
+    npm start
+    ```
+2.  In the second terminal, start the Python Face API:
+    ```sh
+    cd backend/featureApp
+    python face_api.py
+    ```
+
 ### `npm start`
 
-Runs the app in the development mode.\
+Runs the frontend app in development mode. Ensure the backend services are running first.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 The page will reload when you make changes.\

@@ -77,3 +77,66 @@
   color: #d32f2f;
 }
 
+/* Day grid + card styles */
+.timetable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.day-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfffb 100%);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(16, 66, 37, 0.06);
+  border-left: 6px solid #cfeee0;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.day-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(16,66,37,0.08); }
+
+.current-day { border-left-color: #28a745; background: linear-gradient(180deg,#f7fff8, #fff); }
+
+.day-heading {
+  font-size: 20px;
+  margin: 0 0 10px 0;
+  color: #15472b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.day-heading::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 28px;
+  background: #28a745;
+  border-radius: 3px;
+}
+
+.timetable-day-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.timetable-day-table th, .timetable-day-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eef6ee;
+}
+.timetable-day-table thead th { color: #2c6b45; font-weight: 700; }
+.timetable-day-table tbody tr:nth-child(odd) { background: #fbfffb; }
+.timetable-day-table tbody tr:hover { background: #f0fff4; }
+.timetable-day-table td:first-child { width: 120px; font-weight: 600; color: #176a3a; }
+.timetable-day-table td:nth-child(2) { color: #3b5246; font-weight: 600; }
+.timetable-day-table td:nth-child(3) { color: #4b4b4b; }
+
+.no-classes { color: #5b6b63; font-style: italic; margin: 12px 0; }
+
+@media (max-width: 600px) {
+  .timetable-heading { font-size: 22px; }
+  .day-heading { font-size: 16px; }
+  .timetable-day-table td:first-child { width: 90px; }
+}
+
